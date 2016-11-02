@@ -60,8 +60,14 @@ class Build_File {
 		$yaml = NULL;
 		WP_CLI::line( WP_CLI::colorize( "Generating YAML to %Y$build_file%n..." ) );
 
+		// Get information about core.
+		$yaml['core'] = self::generate_core();
+
 		// Get current installed plugins.
 		$yaml['plugins'] = self::generate_plugins();
+
+		// Get current installed themes.
+		$yaml['themes'] = self::generate_themes();
 
 		if ( ! empty( $yaml ) ) {
 			@file_put_contents( $build_file, Yaml::dump( $yaml, 10 ) );
@@ -77,16 +83,25 @@ class Build_File {
 		return TRUE;
 	}
 
+	private static function generate_core() {
+		$core    = [ ];
+		$version = Build_Helper::check_wp_version();
+		if ( ! empty( $version ) ) {
+			$core['download']['version'] = $version;
+		}
+
+		return $core;
+	}
+
 	private static function generate_plugins() {
 		// Plugins.
 		$installed_plugins = get_plugins();
 		$yaml_plugins      = [ ];
 		if ( ! empty( $installed_plugins ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+			require_once ABSPATH.'wp-admin/includes/plugin-install.php';
 			foreach ( $installed_plugins as $file => $details ) {
 				// Plugin slug.
-				$slug = Utils\get_plugin_name( $file );
+				$slug = strtolower(Utils\get_plugin_name( $file ));
 				// Check for WP.org information, if the plugin info is not found, don't add it.
 				$api = plugins_api( 'plugin_information', [ 'slug' => $slug ] );
 				if ( is_wp_error( $api ) ) {
@@ -104,6 +119,33 @@ class Build_File {
 		}
 
 		return $yaml_plugins;
+	}
+
+	private static function generate_themes() {
+		// Themes.
+		$installed_themes = get_themes();
+		$yaml_themes      = [ ];
+		if ( ! empty( $installed_themes ) ) {
+			foreach ( $installed_themes as $file => $details ) {
+				// Slug.
+				$slug = strtolower(Utils\get_theme_name( $file ));
+				// Check for WP.org information, if the theme info is not found, don't add it.
+				$api = themes_api( 'theme_information', [ 'slug' => $slug ] );
+				if ( is_wp_error( $api ) ) {
+					continue;
+				}
+				// Theme version.
+				if ( ! empty( $details['Version'] ) ) {
+					$yaml_themes[ $slug ]['version'] = $details['Version'];
+				}
+				// Theme network activation.
+				if ( ! empty( $details['Network'] ) ) {
+					$yaml_themes[ $slug ]['activate-network'] = 'yes';
+				}
+			}
+		}
+
+		return $yaml_themes;
 	}
 
 }
