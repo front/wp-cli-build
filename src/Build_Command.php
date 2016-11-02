@@ -2,6 +2,7 @@
 namespace WP_CLI_Build;
 
 use WP_CLI;
+
 class Build_Command extends \WP_CLI_Command {
 
 	private $build_file = NULL;

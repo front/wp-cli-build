@@ -19,7 +19,7 @@ class Build_File {
 
 	private function parse() {
 		// Full Build file path.
-		$file_path = ( Build_Helper::is_absolute_path( $this->filename ) ) ? $this->filename : ABSPATH . $this->filename;
+		$file_path = ( Build_Helper::is_absolute_path( $this->filename ) ) ? $this->filename : realpath( '.' ) . '/' . $this->filename;
 		// Check if the file exists.
 		if ( ! file_exists( $file_path ) ) {
 			WP_CLI::error( 'Build file (' . $this->filename . ') not found.' );
