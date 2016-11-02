@@ -109,7 +109,7 @@ class Build_Task {
 
 				// Success.
 				if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
-					Build_Helper::line( "  %GSuccess:%n $type installed successfully." );
+					Build_Helper::line( '  ' . ucfirst( $type ) . ' installed successfully.' );
 				}
 
 				// Output error.
