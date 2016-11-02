@@ -64,10 +64,10 @@ class Build_File {
 		$yaml['core'] = self::generate_core();
 
 		// Get current installed plugins.
-		$yaml['plugins'] = self::generate_plugins();
+		$yaml['plugins'] = self::generate_plugins( $assoc_args );
 
 		// Get current installed themes.
-		$yaml['themes'] = self::generate_themes();
+		$yaml['themes'] = self::generate_themes( $assoc_args );
 
 		if ( ! empty( $yaml ) ) {
 			@file_put_contents( $build_file, Yaml::dump( $yaml, 10 ) );
@@ -93,15 +93,15 @@ class Build_File {
 		return $core;
 	}
 
-	private static function generate_plugins() {
+	private static function generate_plugins( $assoc_args = NULL ) {
 		// Plugins.
 		$installed_plugins = get_plugins();
 		$yaml_plugins      = [ ];
 		if ( ! empty( $installed_plugins ) ) {
-			require_once ABSPATH.'wp-admin/includes/plugin-install.php';
+			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 			foreach ( $installed_plugins as $file => $details ) {
 				// Plugin slug.
-				$slug = strtolower(Utils\get_plugin_name( $file ));
+				$slug = strtolower( Utils\get_plugin_name( $file ) );
 				// Check for WP.org information, if the plugin info is not found, don't add it.
 				$api = plugins_api( 'plugin_information', [ 'slug' => $slug ] );
 				if ( is_wp_error( $api ) ) {
@@ -115,20 +115,24 @@ class Build_File {
 				if ( ! empty( $details['Network'] ) ) {
 					$yaml_plugins[ $slug ]['activate-network'] = 'yes';
 				}
+				// Gitignore.
+				if ( ! empty( $assoc_args['gitignore'] ) ) {
+					$yaml_plugins[ $slug ]['gitignore'] = TRUE;
+				}
 			}
 		}
 
 		return $yaml_plugins;
 	}
 
-	private static function generate_themes() {
+	private static function generate_themes( $assoc_args = NULL ) {
 		// Themes.
 		$installed_themes = get_themes();
 		$yaml_themes      = [ ];
 		if ( ! empty( $installed_themes ) ) {
 			foreach ( $installed_themes as $file => $details ) {
 				// Slug.
-				$slug = strtolower(Utils\get_theme_name( $file ));
+				$slug = strtolower( Utils\get_theme_name( $file ) );
 				// Check for WP.org information, if the theme info is not found, don't add it.
 				$api = themes_api( 'theme_information', [ 'slug' => $slug ] );
 				if ( is_wp_error( $api ) ) {
@@ -141,6 +145,10 @@ class Build_File {
 				// Theme network activation.
 				if ( ! empty( $details['Network'] ) ) {
 					$yaml_themes[ $slug ]['activate-network'] = 'yes';
+				}
+				// Gitignore.
+				if ( ! empty( $assoc_args['gitignore'] ) ) {
+					$yaml_plugins[ $slug ]['gitignore'] = TRUE;
 				}
 			}
 		}

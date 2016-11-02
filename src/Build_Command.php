@@ -110,6 +110,9 @@ class Build_Command extends \WP_CLI_Command {
 	 * [--file=<file>]
 	 * : Specify custom build file (default: build.yml)
 	 *
+	 * [--gitignore]
+	 * : Plugins and themes added to the build file will have gitignore enabled.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp build generate
