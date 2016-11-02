@@ -1,5 +1,5 @@
 {
-  "name": "front/build",
+  "name": "front/wp-cli-build",
   "description": "",
   "type": "wp-cli-package",
   "homepage": "https://github.com/front/wp-cli-build",
