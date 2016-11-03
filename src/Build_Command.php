@@ -103,15 +103,21 @@ class Build_Command extends \WP_CLI_Command {
 	}
 
 	/**
-	 * Generates YAML build file based on current installation.
+	 * Generates YAML build file with core and activated plugins/themes.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--file=<file>]
 	 * : Specify custom build file (default: build.yml)
 	 *
-	 * [--gitignore]
-	 * : Plugins and themes added to the build file will have gitignore enabled.
+	 * [--no-gitignore]
+	 * : .gitignore will not be generated
+	 *
+	 * [--all]
+	 * : Includes all plugins/themes wether they're activated or not.
+	 *
+	 * [--yes]
+	 * : Overwrite existing build file.
 	 *
 	 * ## EXAMPLES
 	 *

@@ -10,6 +10,13 @@ class Build_Gitignore {
 		}
 	}
 
+	public static function exclude_item( $item = NULL, $type = NULL ) {
+		// If we have an item and type.
+		if ( ( ! empty( $item ) ) && ( ! empty( $type ) ) ) {
+			self::add_line( "!wp-content/{$type}s/$item/\n" );
+		}
+	}
+
 	public static function del_item( $item = NULL, $type = NULL ) {
 		// If we have an item and type.
 		if ( ( ! empty( $item ) ) && ( ! empty( $type ) ) ) {

@@ -52,22 +52,45 @@ class Build_File {
 
 		// If file exists, prompt if the user want to replace it.
 		$build_file = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
-		if ( file_exists( ABSPATH . $build_file ) ) {
+		if ( ( file_exists( ABSPATH . $build_file ) ) && ( empty( $assoc_args['yes'] ) ) ) {
 			WP_CLI::confirm( WP_CLI::colorize( "File %Y$build_file%n exists, do you want to overwrite it?" ) );
 		}
 
-		// Generate YAML file.
-		$yaml = NULL;
+		// Process status.
 		WP_CLI::line( WP_CLI::colorize( "Generating YAML to %Y$build_file%n..." ) );
+
+		// Ignore everything unless '--no-gitignore' is specified.
+		if ( empty( $assoc_args['no-gitignore'] ) ) {
+			Build_Gitignore::add_line( "# Ignore everything in the root.\n" );
+			Build_Gitignore::add_line( "/*\n" );
+			Build_Gitignore::add_line( "!.gitignore\n" );
+			Build_Gitignore::add_line( "!wp-content\n" );
+			Build_Gitignore::add_line( "wp-content/*\n" );
+			Build_Gitignore::add_line( "!wp-content/plugins\n" );
+			Build_Gitignore::add_line( "wp-content/plugins/*\n" );
+			Build_Gitignore::add_line( "!wp-content/themes\n" );
+			Build_Gitignore::add_line( "wp-content/themes/*\n" );
+			Build_Gitignore::add_line( "\n" );
+			Build_Gitignore::add_line( "# Add exceptions for our custom plugins/themes.\n" );
+		}
 
 		// Get information about core.
 		$yaml['core'] = self::generate_core( $assoc_args );
 
 		// Get current installed plugins.
-		$yaml['plugins'] = self::generate_plugins( $assoc_args );
+		$plugins = self::generate_plugins( $assoc_args );
 
 		// Get current installed themes.
-		$yaml['themes'] = self::generate_themes( $assoc_args );
+		$themes = self::generate_themes( $assoc_args );
+
+		// YAML content.
+		$yaml = NULL;
+		if ( ! empty( $plugins ) ) {
+			$yaml['plugins'] = $plugins;
+		}
+		if ( ! empty( $themes ) ) {
+			$yaml['themes'] = $themes;
+		}
 
 		if ( ! empty( $yaml ) ) {
 			@file_put_contents( $build_file, Yaml::dump( $yaml, 10 ) );
@@ -78,7 +101,7 @@ class Build_File {
 			}
 		}
 
-		WP_CLI::line( WP_CLI::colorize( "%RError:%n YAML file generated." ) );
+		WP_CLI::line( WP_CLI::colorize( "%RError:%n Failed to generated YAML build file, no content." ) );
 
 		return TRUE;
 	}
@@ -90,46 +113,38 @@ class Build_File {
 			$core['download']['version'] = $version;
 		}
 
-		if ( ! empty( $assoc_args['gitignore'] ) ) {
-			Build_Gitignore::add_line( "# Ignore everything in the root except the \"wp-content\" directory.\n" );
-			Build_Gitignore::add_line( "/*\n" );
-			Build_Gitignore::add_line( "!.gitignore\n" );
-			Build_Gitignore::add_line( "!wp-content/\n" );
-			Build_Gitignore::add_line( "# Ignore everything in the \"wp-content\" directory, except the \"plugins\" and \"themes\" directories.\n" );
-			Build_Gitignore::add_line( "wp-content/*\n" );
-			Build_Gitignore::add_line( "!wp-content/plugins/\n" );
-			Build_Gitignore::add_line( "!wp-content/themes/\n" );
-		}
-
 		return $core;
 	}
 
 	private static function generate_plugins( $assoc_args = NULL ) {
 		// Plugins.
 		$installed_plugins = get_plugins();
-		$yaml_plugins      = [ ];
+		$yaml_plugins      = NULL;
 		if ( ! empty( $installed_plugins ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 			foreach ( $installed_plugins as $file => $details ) {
-				// Plugin slug.
-				$slug = strtolower( Utils\get_plugin_name( $file ) );
-				// Check for WP.org information, if the plugin info is not found, don't add it.
-				$api = plugins_api( 'plugin_information', [ 'slug' => $slug ] );
-				if ( is_wp_error( $api ) ) {
-					continue;
-				}
-				// Plugin version.
-				if ( ! empty( $details['Version'] ) ) {
-					$yaml_plugins[ $slug ]['version'] = $details['Version'];
-				}
-				// Plugin network activation.
-				if ( ! empty( $details['Network'] ) ) {
-					$yaml_plugins[ $slug ]['activate-network'] = 'yes';
-				}
-				// Gitignore.
-				if ( ! empty( $assoc_args['gitignore'] ) ) {
-					Build_Gitignore::add_item( $slug, 'plugin' );
-					$yaml_plugins[ $slug ]['gitignore'] = TRUE;
+				// Check if plugin is active.
+				if ( ( is_plugin_active( $file ) ) || ( ! empty( $assoc_args['all'] ) ) ) {
+					// Plugin slug.
+					$slug = strtolower( Utils\get_plugin_name( $file ) );
+					// Check plugin information on wp official repository.
+					$api = plugins_api( 'plugin_information', [ 'slug' => $slug ] );
+					// If the plugin is not found we assume the plugin is custom.
+					if ( is_wp_error( $api ) ) {
+						// Exclude our custom plugin from being ignored by git.
+						if ( empty( $assoc_args['no-gitignore'] ) ) {
+							Build_Gitignore::exclude_item( $slug, 'plugin' );
+						}
+						continue;
+					}
+					// Plugin version.
+					if ( ! empty( $details['Version'] ) ) {
+						$yaml_plugins[ $slug ]['version'] = $details['Version'];
+					}
+					// Plugin network activation.
+					if ( ! empty( $details['Network'] ) ) {
+						$yaml_plugins[ $slug ]['activate-network'] = 'yes';
+					}
 				}
 			}
 		}
@@ -137,31 +152,29 @@ class Build_File {
 		return $yaml_plugins;
 	}
 
+
 	private static function generate_themes( $assoc_args = NULL ) {
 		// Themes.
-		$installed_themes = get_themes();
-		$yaml_themes      = [ ];
+		$installed_themes = wp_get_themes();
+		$yaml_themes      = NULL;
 		if ( ! empty( $installed_themes ) ) {
-			foreach ( $installed_themes as $file => $details ) {
-				// Slug.
-				$slug = strtolower( Utils\get_theme_name( $file ) );
-				// Check for WP.org information, if the theme info is not found, don't add it.
-				$api = themes_api( 'theme_information', [ 'slug' => $slug ] );
-				if ( is_wp_error( $api ) ) {
-					continue;
-				}
-				// Theme version.
-				if ( ! empty( $details['Version'] ) ) {
-					$yaml_themes[ $slug ]['version'] = $details['Version'];
-				}
-				// Theme network activation.
-				if ( ! empty( $details['Network'] ) ) {
-					$yaml_themes[ $slug ]['activate-network'] = 'yes';
-				}
-				// Gitignore.
-				if ( ! empty( $assoc_args['gitignore'] ) ) {
-					Build_Gitignore::add_item( $slug, 'theme' );
-					$yaml_themes[ $slug ]['gitignore'] = TRUE;
+			$current_theme = get_stylesheet();
+			foreach ( $installed_themes as $slug => $theme ) {
+				if ( $slug == $current_theme ) {
+					// Check theme information on wp official repository.
+					$api = themes_api( 'theme_information', [ 'slug' => $slug ] );
+					// If the theme is not found we assume the plugin is custom.
+					if ( is_wp_error( $api ) ) {
+						// Exclude our custom theme from being ignored by git.
+						if ( empty( $assoc_args['no-gitignore'] ) ) {
+							Build_Gitignore::exclude_item( $slug, 'theme' );
+						}
+						continue;
+					}
+					// Theme version.
+					if ( ! empty( $theme->display( 'Version' ) ) ) {
+						$yaml_themes[ $slug ]['version'] = $theme->display( 'Version' );
+					}
 				}
 			}
 		}
