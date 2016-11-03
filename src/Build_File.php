@@ -61,7 +61,7 @@ class Build_File {
 		WP_CLI::line( WP_CLI::colorize( "Generating YAML to %Y$build_file%n..." ) );
 
 		// Get information about core.
-		$yaml['core'] = self::generate_core();
+		$yaml['core'] = self::generate_core( $assoc_args );
 
 		// Get current installed plugins.
 		$yaml['plugins'] = self::generate_plugins( $assoc_args );
@@ -83,11 +83,22 @@ class Build_File {
 		return TRUE;
 	}
 
-	private static function generate_core() {
+	private static function generate_core( $assoc_args = NULL ) {
 		$core    = [ ];
 		$version = Build_Helper::check_wp_version();
 		if ( ! empty( $version ) ) {
 			$core['download']['version'] = $version;
+		}
+
+		if ( ! empty( $assoc_args['gitignore'] ) ) {
+			Build_Gitignore::add_line( "# Ignore everything in the root except the \"wp-content\" directory.\n" );
+			Build_Gitignore::add_line( "/*\n" );
+			Build_Gitignore::add_line( "!.gitignore\n" );
+			Build_Gitignore::add_line( "!wp-content/\n" );
+			Build_Gitignore::add_line( "# Ignore everything in the \"wp-content\" directory, except the \"plugins\" and \"themes\" directories.\n" );
+			Build_Gitignore::add_line( "wp-content/*\n" );
+			Build_Gitignore::add_line( "!wp-content/plugins/\n" );
+			Build_Gitignore::add_line( "!wp-content/themes/\n" );
 		}
 
 		return $core;
@@ -117,6 +128,7 @@ class Build_File {
 				}
 				// Gitignore.
 				if ( ! empty( $assoc_args['gitignore'] ) ) {
+					Build_Gitignore::add_item( $slug, 'plugin' );
 					$yaml_plugins[ $slug ]['gitignore'] = TRUE;
 				}
 			}
@@ -148,7 +160,8 @@ class Build_File {
 				}
 				// Gitignore.
 				if ( ! empty( $assoc_args['gitignore'] ) ) {
-					$yaml_plugins[ $slug ]['gitignore'] = TRUE;
+					Build_Gitignore::add_item( $slug, 'theme' );
+					$yaml_themes[ $slug ]['gitignore'] = TRUE;
 				}
 			}
 		}

@@ -17,7 +17,7 @@ class Build_Gitignore {
 		}
 	}
 
-	public static function add_line( $line ) {
+	public static function add_line( $line, $verify = TRUE ) {
 		// .gitignore path.
 		$gitignore_path = ABSPATH . '.gitignore';
 		if ( $gitignore_path == '/.gitignore' ) {
@@ -35,7 +35,7 @@ class Build_Gitignore {
 				$check_line = array_search( $line, $gitignore );
 			}
 			// If the line is present don't add.
-			if ( $check_line !== FALSE ) {
+			if ( ( $check_line !== FALSE ) && ( $verify ) ) {
 				return TRUE;
 			}
 		}
