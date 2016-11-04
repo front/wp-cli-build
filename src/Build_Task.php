@@ -117,38 +117,10 @@ class Build_Task {
 					$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '%RError:%n', '%YWarning:%n' ], $result->stderr );
 					Build_Helper::line( '  ' . trim( $stderr ) );
 				}
-
-				// Add plugin to gitignore file if we didn't get any errors.
-				$install_path = realpath( '.' ) . "/wp-content/{$type}s/$item";
-				if ( file_exists( $install_path ) ) {
-					if ( ( isset( $item_info['gitignore'] ) ) && ( $item_info['gitignore'] ) ) {
-						Build_Gitignore::add_item( $item, $type );
-					}
-					if ( ( isset( $item_info['gitignore'] ) ) && ( ! $item_info['gitignore'] ) ) {
-						Build_Gitignore::del_item( $item, $type );
-					}
-				}
-
 			}
 		}
 
 		return NULL;
-	}
-
-	// Add core to gitignore.
-	private static function gitignore_core( $build = NULL ) {
-		$config = $build->get( 'core' );
-		if ( ! empty( $config['gitignore'] ) ) {
-			Build_Gitignore::add_line( "\n" );
-			Build_Gitignore::add_line( "# Ignore everything in the root except the \"wp-content\" directory.\n" );
-			Build_Gitignore::add_line( "/*\n" );
-			Build_Gitignore::add_line( "!.gitignore\n" );
-			Build_Gitignore::add_line( "!wp-content/\n" );
-			Build_Gitignore::add_line( "# Ignore everything in the \"wp-content\" directory, except the \"plugins\" and \"themes\" directories.\n" );
-			Build_Gitignore::add_line( "wp-content/*\n" );
-			Build_Gitignore::add_line( "!wp-content/plugins/\n" );
-			Build_Gitignore::add_line( "!wp-content/themes/\n" );
-		}
 	}
 
 	// Download WordPress if not downloaded or if force setting is defined.
@@ -300,9 +272,6 @@ class Build_Task {
 					} while ( $config['admin-pass'] == NULL );
 				}
 				$install_args['admin_password'] = $config['admin-pass'];
-
-				// Add core to gitignore.
-				Build_Task::gitignore_core( $build );
 
 				// Install WordPress.
 				return Build_Helper::launch_self( 'core', [ 'install' ], $install_args, FALSE, TRUE, [ ], TRUE );

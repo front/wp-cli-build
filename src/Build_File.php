@@ -85,18 +85,6 @@ class Build_File {
 			if ( file_exists( ABSPATH . $build_file ) ) {
 				// Gitignore generation, unless '--no-gitignore' is specified.
 				if ( empty( $assoc_args['no-gitignore'] ) ) {
-					// Core ignore.
-					Build_Gitignore::add_line( "# Ignore everything in the root.\n" );
-					Build_Gitignore::add_line( "/*\n" );
-					Build_Gitignore::add_line( "!.gitignore\n" );
-					Build_Gitignore::add_line( "!build.yml\n" );
-					Build_Gitignore::add_line( "!wp-content\n" );
-					Build_Gitignore::add_line( "wp-content/*\n" );
-					Build_Gitignore::add_line( "!wp-content/plugins\n" );
-					Build_Gitignore::add_line( "wp-content/plugins/*\n" );
-					Build_Gitignore::add_line( "!wp-content/themes\n" );
-					Build_Gitignore::add_line( "wp-content/themes/*\n" );
-					Build_Gitignore::add_line( "\n" );
 					// Custom plugins/themes to exclude from gitignore.
 					$exclude_items = [ ];
 					if ( ! empty( $plugins['exclude'] ) ) {
@@ -105,7 +93,7 @@ class Build_File {
 					if ( ! empty( $themes['exclude'] ) ) {
 						$exclude_items = array_merge( $exclude_items, $themes['exclude'] );
 					}
-					Build_Gitignore::exclude_block( $exclude_items );
+					Build_Gitignore::build_block( $exclude_items );
 				}
 				WP_CLI::line( WP_CLI::colorize( "%GSuccess:%n YAML file generated." ) );
 
