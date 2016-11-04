@@ -64,6 +64,7 @@ class Build_File {
 			Build_Gitignore::add_line( "# Ignore everything in the root.\n" );
 			Build_Gitignore::add_line( "/*\n" );
 			Build_Gitignore::add_line( "!.gitignore\n" );
+			Build_Gitignore::add_line( "!build.yml\n" );
 			Build_Gitignore::add_line( "!wp-content\n" );
 			Build_Gitignore::add_line( "wp-content/*\n" );
 			Build_Gitignore::add_line( "!wp-content/plugins\n" );
