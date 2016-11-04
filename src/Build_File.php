@@ -73,10 +73,10 @@ class Build_File {
 		if ( ! empty( $core ) ) {
 			$yaml['core'] = $core;
 		}
-		if ( ! empty( $plugins ) ) {
+		if ( ! empty( $plugins['yaml'] ) ) {
 			$yaml['plugins'] = $plugins['yaml'];
 		}
-		if ( ! empty( $themes ) ) {
+		if ( ! empty( $themes['yaml'] ) ) {
 			$yaml['themes'] = $themes['yaml'];
 		}
 
