@@ -1,7 +1,6 @@
-<?php
-namespace WP_CLI_Build;
+<?php namespace WP_CLI_Build\Helper;
 
-class Build_Gitignore {
+class Gitignore {
 
 	// WP-CLI Build block for .gitignore.
 	public static function build_block( $exclude_items = [ ] ) {

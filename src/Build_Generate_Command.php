@@ -1,63 +1,53 @@
-<?php
-namespace WP_CLI_Build;
+<?php namespace WP_CLI_Build;
 
 use Symfony\Component\Yaml\Yaml;
 use WP_CLI;
 use WP_CLI\Utils;
+use WP_CLI_Build\Helper\Gitignore;
+use WP_CLI_Build\Helper\Utils as HelperUtils;
 
-class Build_File {
+class Build_Generate_Command extends \WP_CLI_Command {
 
-	private $filename = 'build.yml';
-	private $build = [ ];
-
-	public function __construct( $file ) {
-		// Set Build file.
-		$this->filename = empty( $file ) ? 'build.yml' : $file;
-		// Parse the Build file and Build sure it's valid.
-		$this->parse();
-	}
-
-	private function parse() {
-		// Full Build file path.
-		$file_path = ( Build_Helper::is_absolute_path( $this->filename ) ) ? $this->filename : realpath( '.' ) . '/' . $this->filename;
-		// Check if the file exists.
-		if ( ! file_exists( $file_path ) ) {
-			WP_CLI::error( 'Build file (' . $this->filename . ') not found.' );
-		}
-		// Check if the Build file is a valid yaml file.
-		try {
-			$this->build = Yaml::parse( file_get_contents( $file_path ) );
-		} catch ( \Exception $e ) {
-			WP_CLI::error( 'Error parsing YAML from Build file (' . $this->filename . ').' );
-		}
-	}
-
-	public function get( $key = NULL, $sub_key = NULL ) {
-
-		// With subkey.
-		if ( ! empty( $this->build[ $key ][ $sub_key ] ) ) {
-			return $this->build[ $key ][ $sub_key ];
-		}
-
-		// With key.
-		if ( ( ! empty( $this->build[ $key ] ) ) && ( empty( $sub_key ) ) ) {
-			return $this->build[ $key ];
-		}
-
-		return [ ];
+	/**
+	 * Generates YAML build file with core and activated plugins/themes.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--output=<file>]
+	 * : Where to output build generation result (yml file)
+	 *
+	 * [--skip-git]
+	 * : .gitignore will not be generated
+	 *
+	 * [--all]
+	 * : Includes all plugins/themes wether they're activated or not
+	 *
+	 * [--yes]
+	 * : Skip overwriting confirmation if the destination build file already exists
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp build-generate
+	 *     wp build-generate --output=production.yml
+	 *
+	 */
+	public function __invoke( $args = NULL, $assoc_args = NULL ) {
+		$this->generate( $args, $assoc_args );
 	}
 
 	// Generate
-	public static function generate( $args = NULL, $assoc_args = NULL ) {
+	private function generate( $args = NULL, $assoc_args = NULL ) {
+
+		// Build file.
+		$build_filename = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
 
 		// If file exists, prompt if the user want to replace it.
-		$build_file = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
-		if ( ( file_exists( ABSPATH . $build_file ) ) && ( empty( $assoc_args['yes'] ) ) ) {
-			WP_CLI::confirm( WP_CLI::colorize( "File %Y$build_file%n exists, do you want to overwrite it?" ) );
+		if ( ( file_exists( HelperUtils::wp_path( $build_filename ) ) ) && ( empty( $assoc_args['yes'] ) ) ) {
+			WP_CLI::confirm( WP_CLI::colorize( "File %Y$build_filename%n exists, do you want to overwrite it?" ) );
 		}
 
 		// Process status.
-		WP_CLI::line( WP_CLI::colorize( "Generating YAML to %Y$build_file%n..." ) );
+		WP_CLI::line( WP_CLI::colorize( "Generating build to %Y$build_filename%n..." ) );
 
 		// Get information about core.
 		$core = self::generate_core( $assoc_args );
@@ -81,8 +71,8 @@ class Build_File {
 		}
 
 		if ( ! empty( $yaml ) ) {
-			@file_put_contents( $build_file, Yaml::dump( $yaml, 10 ) );
-			if ( file_exists( ABSPATH . $build_file ) ) {
+			@file_put_contents( $build_filename, Yaml::dump( $yaml, 10 ) );
+			if ( file_exists( HelperUtils::wp_path( $build_filename ) ) ) {
 				// Gitignore generation, unless '--no-gitignore' is specified.
 				if ( empty( $assoc_args['no-gitignore'] ) ) {
 					// Custom plugins/themes to exclude from gitignore.
@@ -93,7 +83,7 @@ class Build_File {
 					if ( ! empty( $themes['exclude'] ) ) {
 						$exclude_items = array_merge( $exclude_items, $themes['exclude'] );
 					}
-					Build_Gitignore::build_block( $exclude_items );
+					Gitignore::build_block( $exclude_items );
 				}
 				WP_CLI::line( WP_CLI::colorize( "%GSuccess:%n YAML file generated." ) );
 
@@ -106,17 +96,18 @@ class Build_File {
 		return TRUE;
 	}
 
-	private static function generate_core( $assoc_args = NULL ) {
+	private function generate_core( $assoc_args = NULL ) {
 		$core    = [ ];
-		$version = Build_Helper::check_wp_version();
+		$version = HelperUtils::wp_version();
 		if ( ! empty( $version ) ) {
 			$core['download']['version'] = $version;
+			$core['download']['locale']  = get_locale();
 		}
 
 		return $core;
 	}
 
-	private static function generate_plugins( $assoc_args = NULL ) {
+	private function generate_plugins( $assoc_args = NULL ) {
 		// Plugins.
 		$installed_plugins = get_plugins();
 		$return            = NULL;
@@ -153,7 +144,7 @@ class Build_File {
 	}
 
 
-	private static function generate_themes( $assoc_args = NULL ) {
+	private function generate_themes( $assoc_args = NULL ) {
 		// Themes.
 		$installed_themes = wp_get_themes();
 		$return           = NULL;
@@ -181,5 +172,6 @@ class Build_File {
 
 		return $return;
 	}
+
 
 }
