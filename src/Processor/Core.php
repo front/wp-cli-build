@@ -64,7 +64,7 @@ class Core {
 
 				// Success message.
 				if ( ( ! empty( $result->stdout ) ) && ( strpos( $result->stdout, 'Success' ) !== FALSE ) ) {
-					Utils::line( " => done\n" );
+					Utils::line( ": done\n" );
 
 					return TRUE;
 				}
