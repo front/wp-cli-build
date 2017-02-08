@@ -59,13 +59,12 @@ class Core {
 				}
 				// Download WordPress.
 				$extra = empty( $config['locale'] ) ? "%G{$config['version']}%n (%Yen_US%n)" : "%G{$config['version']}%n (%Y{$config['locale']}%n)";
-				WP_CLI::line();
-				Utils::line( "- Downloading WordPress $extra..." );
+				Utils::line( "- Downloading WordPress $extra" );
 				$result = Utils::launch_self( 'core', [ 'download' ], $download_args, TRUE, TRUE, [ ], FALSE, FALSE );
 
 				// Success message.
 				if ( ( ! empty( $result->stdout ) ) && ( strpos( $result->stdout, 'Success' ) !== FALSE ) ) {
-					Utils::line( "  %GSuccess:%n WordPress downloaded.\n" );
+					Utils::line( " => done\n" );
 
 					return TRUE;
 				}

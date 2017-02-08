@@ -32,6 +32,8 @@ class Build_Command extends \WP_CLI_Command {
 	 */
 	public function __invoke( $args = NULL, $assoc_args = NULL ) {
 
+		WP_CLI::line( WP_CLI::colorize( '%gLoading build.yml%n' ) );
+
 		// Process core.
 		if ( empty( $assoc_args['no-core'] ) ) {
 			$core = new Core( $assoc_args );
@@ -54,7 +56,7 @@ class Build_Command extends \WP_CLI_Command {
 		if ( empty( $core ) && empty( $plugins ) && empty( $themes ) ) {
 			WP_CLI::line( "Nothing to do." );
 		} else {
-			WP_CLI::line( "Done." );
+			WP_CLI::line( "Finished." );
 		}
 
 	}

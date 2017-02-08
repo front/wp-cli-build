@@ -85,9 +85,9 @@ class Item {
 				Utils::line( "- Downloading %G$item%n (%Y{$item_info['version']}%n)" );
 				$download_status = Utils::item_download( $type, $item, (string) $item_info['version'] );
 				if ( $download_status ) {
-					Utils::line( "  " . ucfirst( $type ) . " downloaded successfully.\n" );
+					Utils::line( ": done%n\n" );
 				} else {
-					Utils::line( "  " . ucfirst( $type ) . " download %Rfailed%n.\n" );
+					Utils::line( ": %Rfailed%n\n" );
 				}
 
 				return TRUE;
@@ -133,7 +133,6 @@ class Item {
 		}
 
 		// Processing message.
-		WP_CLI::line();
 		Utils::line( $process );
 
 		// Install item.
@@ -141,15 +140,15 @@ class Item {
 
 		// Success.
 		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
-			Utils::line( '  ' . ucfirst( $type ) . ' installed successfully.' );
+			Utils::line( ": done\n" );
 
 			return TRUE;
 		}
 
 		// Output error.
 		if ( ! empty( $result->stderr ) ) {
-			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '%RError:%n', '%YWarning:%n' ], $result->stderr );
-			Utils::line( '  ' . trim( $stderr ) );
+			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
+			Utils::line( ": %R" . trim( $stderr ) . "%n\n" );
 		}
 
 		return FALSE;
@@ -161,7 +160,6 @@ class Item {
 		$process = "- Activating %G$item%n (%Y{$item_info['version']}%n)";
 
 		// Processing message.
-		WP_CLI::line();
 		Utils::line( $process );
 
 		// Install item.
@@ -169,15 +167,15 @@ class Item {
 
 		// Success.
 		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
-			Utils::line( '  ' . ucfirst( $type ) . ' activated successfully.' );
+			Utils::line( ": done\n" );
 
 			return TRUE;
 		}
 
 		// Output error.
 		if ( ! empty( $result->stderr ) ) {
-			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '%RError:%n', '%YWarning:%n' ], $result->stderr );
-			Utils::line( '  ' . trim( $stderr ) );
+			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
+			Utils::line( ": %R" . trim( $stderr ) . "%n\n" );
 		}
 
 		return FALSE;
@@ -196,7 +194,6 @@ class Item {
 		$process = "- {$action_label} %G$item%n (%W{$old_version}%n => %Y{$item_info['version']}%n)";
 
 		// Processing message.
-		WP_CLI::line();
 		Utils::line( $process );
 
 		// Install item.
@@ -204,15 +201,15 @@ class Item {
 
 		// Success.
 		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
-			Utils::line( '  ' . ucfirst( $type ) . ' updated successfully.' );
+			Utils::line( ": done\n" );
 
 			return TRUE;
 		}
 
 		// Output error.
 		if ( ! empty( $result->stderr ) ) {
-			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '%RError:%n', '%YWarning:%n' ], $result->stderr );
-			Utils::line( '  ' . trim( $stderr ) );
+			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
+			Utils::line( ": %R" . trim( $stderr ) . "%n\n" );
 		}
 
 		return FALSE;

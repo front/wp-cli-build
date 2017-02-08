@@ -15,7 +15,7 @@ class WP_API {
 
 			if ( ! empty( $response->body ) ) {
 				$plugin = json_decode( $response->body );
-				if ( ( ! empty( $version ) ) && ( $plugin->version != $version ) ) {
+				if ( ( ! empty( $version ) ) && ( ! empty( $plugin->version ) ) && ( $plugin->version != $version ) ) {
 					if ( ! empty( $plugin->download_link ) ) {
 						$plugin = self::_get_item_download_link( $plugin, $version );
 					}
@@ -37,14 +37,14 @@ class WP_API {
 				[ 'action' => 'theme_information', 'request' => [ 'slug' => $slug ] ]
 			);
 			if ( ! empty( $response->body ) ) {
-				$plugin = json_decode( $response->body );
-				if ( ( ! empty( $version ) ) && ( $plugin->version != $version ) ) {
-					if ( ! empty( $plugin->download_link ) ) {
-						$plugin = self::_get_item_download_link( $plugin, $version );
+				$theme = json_decode( $response->body );
+				if ( ( ! empty( $version ) ) && ( ! empty( $theme->version ) ) && ( $theme->version != $version ) ) {
+					if ( ! empty( $theme->download_link ) ) {
+						$theme = self::_get_item_download_link( $theme, $version );
 					}
 				}
 
-				return $plugin;
+				return $theme;
 			}
 
 		}

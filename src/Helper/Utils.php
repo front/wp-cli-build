@@ -46,9 +46,9 @@ class Utils {
 		return $wp_path;
 	}
 
-	public static function line( $text, $pseudo_tab = TRUE ) {
+	public static function line( $text, $pseudo_tab = FALSE ) {
 		$spaces = ( $pseudo_tab ) ? '  ' : NULL;
-		WP_CLI::line( $spaces . WP_CLI::colorize( $text ) );
+		echo $spaces . WP_CLI::colorize( $text );
 	}
 
 	public static function prompt( $question ) {
