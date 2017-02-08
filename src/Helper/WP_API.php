@@ -9,10 +9,33 @@ class WP_API {
 
 			$response = Requests::post(
 				'http://api.wordpress.org/plugins/info/1.0/' . $slug . '.json',
-				[ ],
+				[],
 				[ 'action' => 'plugin_information' ]
 			);
 
+			if ( ! empty( $response->body ) ) {
+				$plugin = json_decode( $response->body );
+				if ( ( ! empty( $version ) ) && ( $plugin->version != $version ) ) {
+					if ( ! empty( $plugin->download_link ) ) {
+						$plugin = self::_get_item_download_link( $plugin, $version );
+					}
+				}
+
+				return $plugin;
+			}
+
+		}
+
+		return NULL;
+	}
+
+	public static function theme_info( $slug = NULL, $version = NULL ) {
+		if ( ! empty( $slug ) ) {
+			$response = Requests::post(
+				'http://api.wordpress.org/themes/info/1.1/',
+				[],
+				[ 'action' => 'theme_information', 'request' => [ 'slug' => $slug ] ]
+			);
 			if ( ! empty( $response->body ) ) {
 				$plugin = json_decode( $response->body );
 				if ( ( ! empty( $version ) ) && ( $plugin->version != $version ) ) {

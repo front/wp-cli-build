@@ -26,7 +26,6 @@ class Item {
 				if ( ! empty( $items ) ) {
 					$defaults = $this->build->get( 'defaults', $item_type . 's' );
 					$result   = $this->process( $item_type, $items, $defaults );
-					WP_CLI::line();
 				}
 			}
 		}
@@ -35,7 +34,7 @@ class Item {
 	}
 
 	// Process item (plugin or theme).
-	private function process( $type = NULL, $items = [ ], $defaults = [ ] ) {
+	private function process( $type = NULL, $items = [], $defaults = [] ) {
 		$result = FALSE;
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $items ) ) ) {
 			// Check if WP is installed.
@@ -90,12 +89,14 @@ class Item {
 				} else {
 					Utils::line( "  " . ucfirst( $type ) . " download %Rfailed%n.\n" );
 				}
+
+				return TRUE;
 			}
 		}
 	}
 
 	// Install and activate an item.
-	private function install( $type = NULL, $item = NULL, $item_info = NULL, $defaults = [ ] ) {
+	private function install( $type = NULL, $item = NULL, $item_info = NULL, $defaults = [] ) {
 		// Processing text.
 		$process = "- Installing %G$item%n";
 
@@ -103,7 +104,7 @@ class Item {
 		$install_point = empty( $item['url'] ) ? $item : $item['url'];
 
 		// Item install arguments.
-		$install_args = [ ];
+		$install_args = [];
 
 		// Defaults merge.
 		$defaults_code = [ 'version' => 'latest', 'force' => FALSE, 'activate' => FALSE, 'activate-network' => FALSE, 'gitignore' => FALSE ];
@@ -136,7 +137,7 @@ class Item {
 		Utils::line( $process );
 
 		// Install item.
-		$result = Utils::launch_self( $type, [ 'install', $install_point ], $install_args, FALSE, TRUE, [ ], FALSE, FALSE );
+		$result = Utils::launch_self( $type, [ 'install', $install_point ], $install_args, FALSE, TRUE, [], FALSE, FALSE );
 
 		// Success.
 		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
@@ -164,7 +165,7 @@ class Item {
 		Utils::line( $process );
 
 		// Install item.
-		$result = Utils::launch_self( $type, [ 'activate', $item ], [ ], FALSE, TRUE, [ ], FALSE, FALSE );
+		$result = Utils::launch_self( $type, [ 'activate', $item ], [], FALSE, TRUE, [], FALSE, FALSE );
 
 		// Success.
 		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
@@ -199,7 +200,7 @@ class Item {
 		Utils::line( $process );
 
 		// Install item.
-		$result = Utils::launch_self( $type, [ 'update', $item ], [ 'version' => $item_info['version'] ], FALSE, TRUE, [ ], FALSE, FALSE );
+		$result = Utils::launch_self( $type, [ 'update', $item ], [ 'version' => $item_info['version'] ], FALSE, TRUE, [], FALSE, FALSE );
 
 		// Success.
 		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
@@ -219,7 +220,7 @@ class Item {
 
 	private function version( $type = NULL, $name = NULL ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
-			$result = Utils::launch_self( 'plugin', [ 'get', $name ], [ 'field' => 'version' ], FALSE, TRUE, [ ], FALSE, FALSE );
+			$result = Utils::launch_self( 'plugin', [ 'get', $name ], [ 'field' => 'version' ], FALSE, TRUE, [], FALSE, FALSE );
 			if ( ! empty( $result->stdout ) ) {
 				return trim( $result->stdout );
 			}
@@ -230,7 +231,7 @@ class Item {
 
 	private function status( $type = NULL, $name = NULL ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
-			$result = Utils::launch_self( 'plugin', [ 'get', $name ], [ 'field' => 'status' ], FALSE, TRUE, [ ], FALSE, FALSE );
+			$result = Utils::launch_self( 'plugin', [ 'get', $name ], [ 'field' => 'status' ], FALSE, TRUE, [], FALSE, FALSE );
 			if ( ! empty( $result->stdout ) ) {
 				return trim( strtolower( $result->stdout ) );
 			}

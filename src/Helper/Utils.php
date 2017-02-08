@@ -19,7 +19,7 @@ class Utils {
 
 	// Return WP version.
 	public static function wp_version() {
-		$result = self::launch_self( 'core', [ 'version' ], [ ], FALSE, TRUE, [ ], FALSE, FALSE );
+		$result = self::launch_self( 'core', [ 'version' ], [], FALSE, TRUE, [], FALSE, FALSE );
 		if ( ! empty( $result->stdout ) ) {
 			return trim( $result->stdout );
 		}
@@ -29,7 +29,7 @@ class Utils {
 
 	// Check if WP is installed.
 	public static function wp_installed() {
-		$result = self::launch_self( 'core', [ 'is-installed' ], [ ], FALSE, TRUE, [ ], FALSE, FALSE );
+		$result = self::launch_self( 'core', [ 'is-installed' ], [], FALSE, TRUE, [], FALSE, FALSE );
 		if ( ! empty( $result->return_code ) ) {
 			return FALSE;
 		}
@@ -76,7 +76,7 @@ class Utils {
 		$regExp .= '(?<root>(?:[[:alpha:]]:/|/)?)';
 		// Actual path.
 		$regExp .= '(?<path>(?:[[:print:]]*))$%';
-		$parts = [ ];
+		$parts = [];
 		if ( ! preg_match( $regExp, $path, $parts ) ) {
 			$mess = sprintf( 'Path is NOT valid, was given %s', $path );
 			throw new \DomainException( $mess );
@@ -88,7 +88,7 @@ class Utils {
 		return FALSE;
 	}
 
-	public static function launch_self( $command, $args = [ ], $assoc_args = [ ], $exit_on_error = TRUE, $return_detailed = FALSE, $runtime_args = [ ], $exit_on_error_print = FALSE, $print = TRUE ) {
+	public static function launch_self( $command, $args = [], $assoc_args = [], $exit_on_error = TRUE, $return_detailed = FALSE, $runtime_args = [], $exit_on_error_print = FALSE, $print = TRUE ) {
 
 		// Run command.
 		$result = WP_CLI::launch_self( $command, $args, $assoc_args, $exit_on_error, $return_detailed, $runtime_args );
@@ -143,7 +143,7 @@ class Utils {
 				$create_dir = self::mkdir( $save_dir );
 				if ( $create_dir ) {
 					$save_path = $save_dir . $filename;
-					$download  = Requests::get( $url, [ ], [ 'filename' => $save_path ] );
+					$download  = Requests::get( $url, [], [ 'filename' => $save_path, 'verify' => FALSE, 'timeout' => 20 ] );
 					if ( $download->status_code == 200 ) {
 						return TRUE;
 					}
