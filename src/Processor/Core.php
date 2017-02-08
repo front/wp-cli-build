@@ -15,27 +15,58 @@ class Core {
 	}
 
 	public function process() {
-
+		// WP installation status.
+		$installed = Utils::wp_installed();
+		// Check if we have core info in build.yml.
 		if ( ! empty( $this->build->get( 'core' ) ) ) {
-
-			// Download WordPress.
-			$download = $this->download_wordpress();
-
-			// Configure WordPress.
-			$config = $this->config_wordpress();
-
-			// Install WordPress.
-			$install = $this->install_wordpress();
-
+			// Update WordPress.
+			$update = $this->update_wordpress();
+			// If WordPress is not installed...
+			if ( ! $installed ) {
+				// Download WordPress.
+				$download = $this->download_wordpress();
+				// Configure WordPress.
+				$config = $this->config_wordpress();
+				// Install WordPress.
+				$install = $this->install_wordpress();
+			}
 		}
 
 		// Return false if nothing was done.
-		if ( empty( $download ) && empty( $config ) && empty( $install ) ) {
+		if ( empty( $update ) && empty( $download ) && empty( $config ) && empty( $install ) ) {
 			return FALSE;
-		} else {
-			return TRUE;
 		}
 
+		return TRUE;
+	}
+
+	// Update WordPress if build.yml version is higher than currently installed.
+	private function update_wordpress() {
+		// Config
+		$config            = $this->build->get( 'core', 'download' );
+		$installed_version = Utils::wp_version();
+		$config_version    = empty( $config['version'] ) ? NULL : $config['version'];
+		// Compare installed version with the one in build.yml.
+		if ( version_compare( $installed_version, $config_version ) === - 1 ) {
+			// Status.
+			Utils::line( "- Updating WordPress (%W{$installed_version}%n => %Y{$config_version}%n)" );
+			// Update WordPress.
+			$result = Utils::launch_self( 'core', [ 'update' ], $config, FALSE, TRUE, [], FALSE, FALSE );
+			// Success message.
+			if ( ( ! empty( $result->stdout ) ) && ( strpos( $result->stdout, 'Success' ) !== FALSE ) ) {
+				Utils::line( ": done\n" );
+
+				return TRUE;
+			}
+			
+			// Output error.
+			if ( ! empty( $result->stderr ) ) {
+				$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
+				Utils::line( ": %R" . trim( $stderr ) . "%n\n" );
+			}
+		}
+
+		return NULL;
 	}
 
 	// Download WordPress if not downloaded or if force setting is defined.
@@ -60,7 +91,7 @@ class Core {
 				// Download WordPress.
 				$extra = empty( $config['locale'] ) ? "%G{$config['version']}%n (%Yen_US%n)" : "%G{$config['version']}%n (%Y{$config['locale']}%n)";
 				Utils::line( "- Downloading WordPress $extra" );
-				$result = Utils::launch_self( 'core', [ 'download' ], $download_args, TRUE, TRUE, [ ], FALSE, FALSE );
+				$result = Utils::launch_self( 'core', [ 'download' ], $download_args, TRUE, TRUE, [], FALSE, FALSE );
 
 				// Success message.
 				if ( ( ! empty( $result->stdout ) ) && ( strpos( $result->stdout, 'Success' ) !== FALSE ) ) {
@@ -137,7 +168,7 @@ class Core {
 					}
 
 					// Config WordPress.
-					$result = Utils::launch_self( 'core', [ 'config' ], $config_args, FALSE, TRUE, [ ], TRUE );
+					$result = Utils::launch_self( 'core', [ 'config' ], $config_args, FALSE, TRUE, [], TRUE );
 					if ( empty( $result->stderr ) ) {
 						return TRUE;
 					}
@@ -160,7 +191,7 @@ class Core {
 				// Status.
 				Utils::line( "- Installing WordPress..." );
 
-				$install_args = [ ];
+				$install_args = [];
 				if ( ! empty( $config['url'] ) ) {
 					$install_args['url'] = $config['url'];
 				}
@@ -187,7 +218,7 @@ class Core {
 				$install_args['admin_password'] = $config['admin-pass'];
 
 				// Install WordPress.
-				return Utils::launch_self( 'core', [ 'install' ], $install_args, FALSE, TRUE, [ ], TRUE );
+				return Utils::launch_self( 'core', [ 'install' ], $install_args, FALSE, TRUE, [], TRUE );
 			}
 		}
 
