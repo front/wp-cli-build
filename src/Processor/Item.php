@@ -1,7 +1,6 @@
 <?php namespace WP_CLI_Build\Processor;
 
 use Symfony\Component\Filesystem\Filesystem;
-use WP_CLI;
 use WP_CLI\Utils as WP_CLI_Utils;
 use WP_CLI_Build\Helper\Build_File;
 use WP_CLI_Build\Helper\Utils;
@@ -84,10 +83,10 @@ class Item {
 			if ( ! $exists ) {
 				Utils::line( "- Downloading %G$item%n (%Y{$item_info['version']}%n)" );
 				$download_status = Utils::item_download( $type, $item, (string) $item_info['version'] );
-				if ( $download_status ) {
+				if ( $download_status === TRUE ) {
 					Utils::line( ": done%n\n" );
 				} else {
-					Utils::line( ": %Rfailed%n\n" );
+					Utils::line( ": %R{$download_status}%n\n" );
 				}
 
 				return TRUE;
@@ -138,20 +137,8 @@ class Item {
 		// Install item.
 		$result = Utils::launch_self( $type, [ 'install', $install_point ], $install_args, FALSE, TRUE, [], FALSE, FALSE );
 
-		// Success.
-		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
-			Utils::line( ": done\n" );
-
-			return TRUE;
-		}
-
-		// Output error.
-		if ( ! empty( $result->stderr ) ) {
-			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
-			Utils::line( ": %R" . trim( $stderr ) . "%n\n" );
-		}
-
-		return FALSE;
+		// Print result.
+		return Utils::result( $result );
 	}
 
 	// Activate an item.
@@ -165,20 +152,8 @@ class Item {
 		// Install item.
 		$result = Utils::launch_self( $type, [ 'activate', $item ], [], FALSE, TRUE, [], FALSE, FALSE );
 
-		// Success.
-		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
-			Utils::line( ": done\n" );
-
-			return TRUE;
-		}
-
-		// Output error.
-		if ( ! empty( $result->stderr ) ) {
-			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
-			Utils::line( ": %R" . trim( $stderr ) . "%n\n" );
-		}
-
-		return FALSE;
+		// Print result.
+		return Utils::result( $result );
 	}
 
 	// Activate an item.
@@ -199,20 +174,8 @@ class Item {
 		// Install item.
 		$result = Utils::launch_self( $type, [ 'update', $item ], [ 'version' => $item_info['version'] ], FALSE, TRUE, [], FALSE, FALSE );
 
-		// Success.
-		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
-			Utils::line( ": done\n" );
-
-			return TRUE;
-		}
-
-		// Output error.
-		if ( ! empty( $result->stderr ) ) {
-			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
-			Utils::line( ": %R" . trim( $stderr ) . "%n\n" );
-		}
-
-		return FALSE;
+		// Print result.
+		return Utils::result( $result );
 	}
 
 	private function version( $type = NULL, $name = NULL ) {

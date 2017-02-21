@@ -1,11 +1,12 @@
 <?php namespace WP_CLI_Build\Helper;
 
+use WP_CLI;
+use Requests;
 use Alchemy\Zippy\Exception\InvalidArgumentException;
 use Alchemy\Zippy\Exception\RuntimeException;
 use Alchemy\Zippy\Zippy;
-use Requests;
 use Symfony\Component\Filesystem\Filesystem;
-use WP_CLI;
+use Symfony\Component\Filesystem\Exception\IOException;
 
 class Utils {
 
@@ -39,8 +40,8 @@ class Utils {
 
 	public static function wp_path( $path = NULL ) {
 		$wp_path = ABSPATH;
-		if ( ( ! self::is_absolute_path( ABSPATH ) ) || ( $wp_path == '/' ) ) {
-			$wp_path = getcwd() . '/' . $path;
+		if ( ! empty( $path ) ) {
+			$wp_path = ( ( ! self::is_absolute_path( ABSPATH ) ) || ( $wp_path == '/' ) ) ? getcwd() . '/' . $path : $wp_path . '/' . $path;
 		}
 
 		return $wp_path;
@@ -119,13 +120,17 @@ class Utils {
 				$filename = basename( $info->download_link );
 				if ( ! empty( $filename ) ) {
 					$download = Utils::download_url( $info->download_link );
-					if ( ! empty( $download ) ) {
-						$file_path = Utils::wp_path() . 'wp-content/' . $filename;
+					if ( $download === TRUE ) {
+						$file_path = Utils::wp_path( 'wp-content/' . $filename );
 						if ( file_exists( $file_path ) ) {
 							return self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) );
 						}
 					}
+
+					return $download;
 				}
+			} else {
+				return 'not available in wordpress.org';
 			}
 
 		}
@@ -139,15 +144,17 @@ class Utils {
 		if ( ! empty( $url ) ) {
 			$filename = basename( $url );
 			if ( ! empty( $filename ) ) {
-				$save_dir   = self::wp_path() . 'wp-content/';
+				$save_dir   = self::wp_path( 'wp-content/' );
 				$create_dir = self::mkdir( $save_dir );
-				if ( $create_dir ) {
+				if ( $create_dir === TRUE ) {
 					$save_path = $save_dir . $filename;
 					$download  = Requests::get( $url, [], [ 'filename' => $save_path, 'verify' => FALSE, 'timeout' => 20 ] );
 					if ( $download->status_code == 200 ) {
 						return TRUE;
 					}
 				}
+
+				return $create_dir;
 			}
 		}
 
@@ -193,13 +200,35 @@ class Utils {
 				$fs = new Filesystem();
 				try {
 					$fs->mkdir( $dir, 0755 );
+				} catch ( IOException $e ) {
+					return $e->getMessage();
 				} catch ( IOExceptionInterface $e ) {
-					return FALSE;
+					return $e->getMessage();
 				}
 
 				return file_exists( $dir );
 			} else {
 				return TRUE;
+			}
+		}
+
+		return FALSE;
+	}
+
+	// Print success or error message.
+	public static function result( $result = NULL ) {
+		if ( ! empty( $result ) ) {
+			// Success.
+			if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
+				self::line( ": done\n" );
+
+				return TRUE;
+			}
+
+			// Output error.
+			if ( ! empty( $result->stderr ) ) {
+				$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '', '' ], $result->stderr );
+				self::line( ": %R" . trim( $stderr ) . "%n\n" );
 			}
 		}
 
