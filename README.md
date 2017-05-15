@@ -2,14 +2,22 @@ WP-CLI Build
 ==================
 
 
-
 [![Build Status](https://travis-ci.org/front/wp-cli-build.svg?branch=master)](https://travis-ci.org/front/make-package)
 
 Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing)
 
 ## Using
+### Generate a build file according to current installation
 
+`wp build-generate`
 
+For options, see `wp build-generate --help`
+
+### Use the build file
+
+`wp build`
+
+This parses the yaml build file and will process core, plugins and themes.
 
 ## Installing
 
