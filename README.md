@@ -2,8 +2,6 @@ WP-CLI Build
 ==================
 
 
-[![Build Status](https://travis-ci.org/front/wp-cli-build.svg?branch=master)](https://travis-ci.org/front/make-package)
-
 Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing)
 
 ## Using
