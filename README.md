@@ -18,7 +18,7 @@ With that done, generate your barebones build file:
 
 For options, see `wp build-generate --help`
 
-## Use the build file
+## Using the build file
 
 `wp build`
 
