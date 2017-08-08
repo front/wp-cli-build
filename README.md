@@ -1,6 +1,7 @@
 WP-CLI Build
 ==================
 
+Use [WP-CLI](http://wp-cli.org/) to add and maintain plugins, themes and core! Versioning and all. And of course: Git friendly.
 
 Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing)
 
