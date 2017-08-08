@@ -8,7 +8,7 @@ Quick links: [Installing](#installing) | [Using](#using) | [Contributing](#contr
 ## Installing
 Installing this package requires WP-CLI v0.23.0 or greater. Update to the latest stable release with `wp cli update`.
 
-Once you've done so, you can install this package with `wp package install front/wp-cli-build`.
+Once you've done so, you can install this package with `wp package install https://github.com/front/wp-cli-build.git`.
 
 You need WP installed to get started, so if you don't already have an existing site:
 `wp core download` and install. 
