@@ -1,28 +1,29 @@
 WP-CLI Build
 ==================
 
-Use [WP-CLI](http://wp-cli.org/) to add and maintain plugins, themes and core! Versioning and all. And of course: Git friendly.
+Use [WP-CLI](http://wp-cli.org/) to version your plugins, themes and core! And of course: Git friendly.
 
-Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing)
+Quick links: [Installing](#installing) | [Using](#using) | [Contributing](#contributing)
 
-## Using
-### Generate a build file according to current installation
+## Installing
+Installing this package requires WP-CLI v0.23.0 or greater. Update to the latest stable release with `wp cli update`.
 
+Once you've done so, you can install this package with `wp package install front/wp-cli-build`.
+
+You need WP installed to get started, so if you don't already have an existing site:
+`wp core download` and install. 
+
+With that done, generate your barebones build file:
 `wp build-generate`
 
 For options, see `wp build-generate --help`
 
-### Use the build file
+## Use the build file
 
 `wp build`
 
 This parses the yaml build file and will process core, plugins and themes.
 
-## Installing
-
-Installing this package requires WP-CLI v0.23.0 or greater. Update to the latest stable release with `wp cli update`.
-
-Once you've done so, you can install this package with `wp package install front/wp-cli-build`.
 
 ## Contributing
 
