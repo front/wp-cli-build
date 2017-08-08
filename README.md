@@ -38,7 +38,7 @@ Before you create a new issue, you should [search existing issues](https://githu
 
 Once you’ve done a bit of searching and discovered there isn’t an open or fixed issue for your bug, please [create a new issue](https://github.com/front/wp-cli-build/issues/new) with the following:
 
-1. What you were doing (e.g. "When I run `wp post list`").
+1. What you were doing (e.g. "When I run `wp build` ...").
 2. What you saw (e.g. "I see a fatal about a class being undefined.").
 3. What you expected to see (e.g. "I expected to see the list of posts.")
 
@@ -47,13 +47,3 @@ Include as much detail as you can, and clear steps to reproduce if possible.
 ### Creating a pull request
 
 Want to contribute a new feature? Please first [open a new issue](https://github.com/front/wp-cli-build/issues/new) to discuss whether the feature is a good fit for the project.
-
-Once you've decided to commit the time to seeing your pull request through, please follow our guidelines for creating a pull request to make sure it's a pleasant experience:
-
-1. Create a feature branch for each contribution.
-2. Submit your pull request early for feedback.
-3. Include functional tests with your changes. [Read the WP-CLI documentation](https://wp-cli.org/docs/pull-requests/#functional-tests) for an introduction.
-4. Follow the [WordPress Coding Standards](http://make.wordpress.org/core/handbook/coding-standards/).
-
-
-*This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*
