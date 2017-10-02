@@ -4,7 +4,7 @@ use Requests;
 
 class WP_API {
 
-	public static function plugin_info( $slug = NULL, $version = NULL ) {
+	public static function plugin_info( $slug = NULL, $version = NULL, $download_link = TRUE ) {
 		if ( ! empty( $slug ) ) {
 
 			$response = Requests::post(
@@ -29,7 +29,7 @@ class WP_API {
 		return NULL;
 	}
 
-	public static function theme_info( $slug = NULL, $version = NULL ) {
+	public static function theme_info( $slug = NULL, $version = NULL, $download_link = TRUE ) {
 		if ( ! empty( $slug ) ) {
 			$response = Requests::post(
 				'http://api.wordpress.org/themes/info/1.1/',
@@ -65,6 +65,11 @@ class WP_API {
 			$response->download_link = $link . $response->slug . '.zip';
 			$response->version       = 'Development Version';
 		} else {
+      // Sets the latest version if '*' is specified
+      if ($version == '*' || $version == 'latest') {
+        $version = $response->version;
+      }
+      // Build the download link
 			$response->download_link = $link . $response->slug . '.' . $version . '.zip';
 			$response->version       = $version;
 		}
