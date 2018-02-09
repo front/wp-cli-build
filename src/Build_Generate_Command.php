@@ -76,7 +76,7 @@ class Build_Generate_Command extends \WP_CLI_Command {
 				// Gitignore generation, unless '--no-gitignore' is specified.
 				if ( empty( $assoc_args['no-gitignore'] ) ) {
 					// Custom plugins/themes to exclude from gitignore.
-					$exclude_items = [ ];
+					$exclude_items = [];
 					if ( ! empty( $plugins['exclude'] ) ) {
 						$exclude_items = array_merge( $exclude_items, $plugins['exclude'] );
 					}
@@ -97,7 +97,7 @@ class Build_Generate_Command extends \WP_CLI_Command {
 	}
 
 	private function generate_core( $assoc_args = NULL ) {
-		$core    = [ ];
+		$core    = [];
 		$version = HelperUtils::wp_version();
 		if ( ! empty( $version ) ) {
 			$core['download']['version'] = $version;

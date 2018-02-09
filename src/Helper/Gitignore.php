@@ -3,14 +3,14 @@
 class Gitignore {
 
 	// WP-CLI Build block for .gitignore.
-	public static function build_block( $exclude_items = [ ] ) {
+	public static function build_block( $exclude_items = [] ) {
 		// .gitignore path.
 		$gitignore_path = ABSPATH . '.gitignore';
 		if ( $gitignore_path == '/.gitignore' ) {
 			$gitignore_path = realpath( '.' ) . '/.gitignore';
 		}
 		// Check if the file exists and load.
-		$gitignore = [ ];
+		$gitignore = [];
 		if ( file_exists( $gitignore_path ) ) {
 			$gitignore = @file( $gitignore_path );
 			// Check if the path is already in ignore file.

@@ -77,7 +77,7 @@ class Utils {
 		$regExp .= '(?<root>(?:[[:alpha:]]:/|/)?)';
 		// Actual path.
 		$regExp .= '(?<path>(?:[[:print:]]*))$%';
-		$parts = [];
+		$parts  = [];
 		if ( ! preg_match( $regExp, $path, $parts ) ) {
 			$mess = sprintf( 'Path is NOT valid, was given %s', $path );
 			throw new \DomainException( $mess );

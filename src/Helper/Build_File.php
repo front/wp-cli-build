@@ -6,7 +6,7 @@ use WP_CLI;
 class Build_File {
 
 	private $filename = 'build.yml';
-	private $build = [ ];
+	private $build = [];
 
 	public function __construct( $file ) {
 		// Set Build file.
@@ -42,7 +42,7 @@ class Build_File {
 			return $this->build[ $key ];
 		}
 
-		return [ ];
+		return [];
 	}
 
 }

@@ -65,11 +65,11 @@ class WP_API {
 			$response->download_link = $link . $response->slug . '.zip';
 			$response->version       = 'Development Version';
 		} else {
-      // Sets the latest version if '*' is specified
-      if ($version == '*' || $version == 'latest') {
-        $version = $response->version;
-      }
-      // Build the download link
+			// Sets the latest version if '*' is specified
+			if ( $version == '*' || $version == 'latest' ) {
+				$version = $response->version;
+			}
+			// Build the download link
 			$response->download_link = $link . $response->slug . '.' . $version . '.zip';
 			$response->version       = $version;
 		}

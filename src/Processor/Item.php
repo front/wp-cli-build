@@ -41,10 +41,10 @@ class Item {
 			$wp_installed = Utils::wp_installed();
 			$status       = FALSE;
 			foreach ( $items as $item => $item_info ) {
-        // Sets item latest version
-        if ($item_info['version'] == '*' || $item_info['version'] == 'latest') {
-          $item_info['version'] = $this->get_item_latest_version($type, $item, $item_info['version']);
-        }
+				// Sets item latest version
+				if ( $item_info['version'] == '*' || $item_info['version'] == 'latest' ) {
+					$item_info['version'] = $this->get_item_latest_version( $type, $item, $item_info['version'] );
+				}
 				// Download, install or activate the item depending on WordPress installation status.
 				if ( $wp_installed ) {
 					// Install if the plugin doesn't exist.
@@ -56,9 +56,9 @@ class Item {
 						$status = $this->activate( $type, $item, $item_info );
 					} // Update if the version differs.
 					elseif ( $item_status === 'active' ) {
-					  // Get item info.
+						// Get item info.
 						if ( ! empty( $item_info['version'] ) ) {
-              // Check if we need an update
+							// Check if we need an update
 							if ( $item_info['version'] != $this->version( $type, $item ) ) {
 								$status = $this->update( $type, $item, $item_info );
 							}
@@ -207,16 +207,16 @@ class Item {
 		return FALSE;
 	}
 
-  private function get_item_latest_version( $type = NULL, $slug = NULL, $version = '*' ) {
-    if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $slug ) ) ) {
-      $info_fn = $type . '_info';
-      $info    = WP_API::$info_fn( $slug, $version, FALSE );
-      if (!empty($info->version)) {
-        return $info->version;
-      }
-    }
+	private function get_item_latest_version( $type = NULL, $slug = NULL, $version = '*' ) {
+		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $slug ) ) ) {
+			$info_fn = $type . '_info';
+			$info    = WP_API::$info_fn( $slug, $version, FALSE );
+			if ( ! empty( $info->version ) ) {
+				return $info->version;
+			}
+		}
 
-    return NULL;
-  }
+		return NULL;
+	}
 
 }
