@@ -61,7 +61,7 @@ class WP_API {
 
 		list( $link ) = explode( $response->slug, $response->download_link );
 
-		if ( 'dev' == $version ) {
+		if ( $version == 'dev' ) {
 			$response->download_link = $link . $response->slug . '.zip';
 			$response->version       = 'Development Version';
 		} else {

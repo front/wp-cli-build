@@ -43,7 +43,7 @@ class Item {
 			foreach ( $items as $item => $item_info ) {
 				// Sets item latest version
 				if ( $item_info['version'] == '*' || $item_info['version'] == 'latest' ) {
-					$item_info['version'] = $this->get_item_latest_version( $type, $item, $item_info['version'] );
+					$item_info['version'] = $this->set_item_version( $type, $item, $item_info['version'] );
 				}
 				// Download, install or activate the item depending on WordPress installation status.
 				if ( $wp_installed ) {
@@ -207,16 +207,29 @@ class Item {
 		return FALSE;
 	}
 
-	private function get_item_latest_version( $type = NULL, $slug = NULL, $version = '*' ) {
+	private function get_item_info( $type = NULL, $slug = NULL, $version = '*', $field = NULL ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $slug ) ) ) {
 			$info_fn = $type . '_info';
 			$info    = WP_API::$info_fn( $slug, $version, FALSE );
-			if ( ! empty( $info->version ) ) {
-				return $info->version;
+			if ( ! empty( $info->{$field} ) ) {
+				return $info->{$field};
 			}
+
+			return $info;
 		}
 
 		return NULL;
+	}
+
+	private function set_item_version( $type = NULL, $slug = NULL, $version = '*' ) {
+		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $slug ) ) ) {
+			$item_info = $this->get_item_info( $type, $slug, $version );
+			if ( ! empty( $item_info->version ) ) {
+				return $item_info->version;
+			}
+		}
+
+		return ( $version === '*' ) ? 'latest' : $version;
 	}
 
 }
