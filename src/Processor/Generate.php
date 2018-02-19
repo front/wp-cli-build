@@ -17,12 +17,13 @@ class Generate {
 		$build['core']    = $this->get_core();
 		$build['plugins'] = $this->get_plugins();
 		$build['themes']  = $this->get_themes();
+
 		return $build;
 	}
 
 	private function get_core() {
 		// Init.
-		$locale  = get_locale();
+		$locale = get_locale();
 		// If the core version from existing file is the latest, set it.
 		if ( ( $this->build_file->get_core_version() == '*' ) || ( $this->build_file->get_core_version() == 'latest' ) ) {
 			$version = '*';
@@ -64,7 +65,7 @@ class Generate {
 					if ( ( $build_version == '*' ) || ( $build_version == 'latest' ) ) {
 						$plugins['build'][ $slug ]['version'] = '*';
 					} elseif ( ! empty( $details['Version'] ) ) {
-						$plugins['build'][ $slug ]['version'] = "'{$details['Version']}'";
+						$plugins['build'][ $slug ]['version'] = $this->convert_to_numeric( $details['Version'] );
 					}
 					// Plugin network activation.
 					if ( ! empty( $details['Network'] ) ) {
@@ -100,13 +101,21 @@ class Generate {
 					if ( ( $build_version == '*' ) || ( $build_version == 'latest' ) ) {
 						$themes['build'][ $slug ]['version'] = '*';
 					} elseif ( ! empty( $theme->display( 'Version' ) ) ) {
-						$themes['build'][ $slug ]['version'] = $theme->display( 'Version' );
+						$themes['build'][ $slug ]['version'] = $this->convert_to_numeric( $theme->display( 'Version' ) );
 					}
 				}
 			}
 		}
 
 		return $themes;
+	}
+
+	private function convert_to_numeric( $version = NULL ) {
+		if ( ( ! empty( $version ) ) && ( is_numeric( $version ) ) ) {
+			return strpos($version, '.') === FALSE ? (int) $version : (float) $version;
+		}
+
+		return $version;
 	}
 
 }
