@@ -20,7 +20,7 @@ class Build_Generate_Command extends \WP_CLI_Command {
 	 * : .gitignore will not be generated
 	 *
 	 * [--all]
-	 * : Includes all plugins/themes wether they're activated or not
+	 * : Includes all plugins/themes whether they're activated or not
 	 *
 	 * [--yes]
 	 * : Skip overwriting confirmation if the destination build file already exists
