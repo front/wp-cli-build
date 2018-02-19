@@ -2,14 +2,15 @@
 
 use Symfony\Component\Yaml\Yaml;
 use WP_CLI;
-use WP_CLI\Utils;
+use WP_CLI_Build\Helper\Build_File;
 use WP_CLI_Build\Helper\Gitignore;
 use WP_CLI_Build\Helper\Utils as HelperUtils;
+use WP_CLI_Build\Processor\Generate;
 
 class Build_Generate_Command extends \WP_CLI_Command {
 
 	/**
-	 * Generates YAML build file with core and activated plugins/themes.
+	 * Generates build file with core and activated plugins/themes. Also generates .gitignore with custom plugins/themes.
 	 *
 	 * ## OPTIONS
 	 *
@@ -42,32 +43,31 @@ class Build_Generate_Command extends \WP_CLI_Command {
 		$build_filename = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
 
 		// If file exists, prompt if the user want to replace it.
-		if ( ( file_exists( HelperUtils::wp_path( $build_filename ) ) ) && ( empty( $assoc_args['yes'] ) ) ) {
-			WP_CLI::confirm( WP_CLI::colorize( "File %Y$build_filename%n exists, do you want to overwrite it?" ) );
+		$build_file = NULL;
+		if ( file_exists( HelperUtils::wp_path( $build_filename ) ) ) {
+			if ( empty( $assoc_args['yes'] ) ) {
+				WP_CLI::confirm( WP_CLI::colorize( "%WFile %Y$build_filename%n%W exists, do you want to overwrite it?%n" ) );
+			}
+			$build_file = new Build_File( $build_filename );
 		}
 
 		// Process status.
-		WP_CLI::line( WP_CLI::colorize( "Generating build to %Y$build_filename%n..." ) );
+		WP_CLI::line( WP_CLI::colorize( "%WGenerating build file (%n%Y$build_filename%n%W), please wait..." ) );
 
-		// Get information about core.
-		$core = self::generate_core( $assoc_args );
-
-		// Get current installed plugins.
-		$plugins = self::generate_plugins( $assoc_args );
-
-		// Get current installed themes.
-		$themes = self::generate_themes( $assoc_args );
+		// Get structure for build file.
+		$generator = new Generate( $assoc_args, $build_file );
+		$build     = $generator->get();
 
 		// YAML content.
-		$yaml = NULL;
-		if ( ! empty( $core ) ) {
-			$yaml['core'] = $core;
+		$yaml = [];
+		if ( ! empty( $build['core'] ) ) {
+			$yaml['core'] = $build['core'];
 		}
-		if ( ! empty( $plugins['yaml'] ) ) {
-			$yaml['plugins'] = $plugins['yaml'];
+		if ( ! empty( $build['plugins']['build'] ) ) {
+			$yaml['plugins'] = $build['plugins']['build'];
 		}
-		if ( ! empty( $themes['yaml'] ) ) {
-			$yaml['themes'] = $themes['yaml'];
+		if ( ! empty( $build['themes']['build'] ) ) {
+			$yaml['themes'] = $build['themes']['build'];
 		}
 
 		if ( ! empty( $yaml ) ) {
@@ -76,14 +76,14 @@ class Build_Generate_Command extends \WP_CLI_Command {
 				// Gitignore generation, unless '--no-gitignore' is specified.
 				if ( empty( $assoc_args['no-gitignore'] ) ) {
 					// Custom plugins/themes to exclude from gitignore.
-					$exclude_items = [];
-					if ( ! empty( $plugins['exclude'] ) ) {
-						$exclude_items = array_merge( $exclude_items, $plugins['exclude'] );
+					$custom_items = [];
+					if ( ! empty( $build['plugins']['custom'] ) ) {
+						$custom_items = array_merge( $custom_items, $build['plugins']['custom'] );
 					}
-					if ( ! empty( $themes['exclude'] ) ) {
-						$exclude_items = array_merge( $exclude_items, $themes['exclude'] );
+					if ( ! empty( $build['themes']['custom'] ) ) {
+						$custom_items = array_merge( $custom_items, $build['themes']['custom'] );
 					}
-					Gitignore::build_block( $exclude_items );
+					Gitignore::build_block( $custom_items );
 				}
 				WP_CLI::line( WP_CLI::colorize( "%GSuccess:%n YAML file generated." ) );
 
@@ -94,83 +94,6 @@ class Build_Generate_Command extends \WP_CLI_Command {
 		WP_CLI::line( WP_CLI::colorize( "%RError:%n Failed to generated YAML build file, no content." ) );
 
 		return TRUE;
-	}
-
-	private function generate_core( $assoc_args = NULL ) {
-		$core    = [];
-		$version = HelperUtils::wp_version();
-		if ( ! empty( $version ) ) {
-			$core['download']['version'] = $version;
-			$core['download']['locale']  = get_locale();
-		}
-
-		return $core;
-	}
-
-	private function generate_plugins( $assoc_args = NULL ) {
-		// Plugins.
-		$installed_plugins = get_plugins();
-		$return            = NULL;
-		if ( ! empty( $installed_plugins ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
-			foreach ( $installed_plugins as $file => $details ) {
-				// Check if plugin is active.
-				if ( ( is_plugin_active( $file ) ) || ( ! empty( $assoc_args['all'] ) ) ) {
-					// Plugin slug.
-					$slug = strtolower( Utils\get_plugin_name( $file ) );
-					// Check plugin information on wp official repository.
-					$api = plugins_api( 'plugin_information', [ 'slug' => $slug ] );
-					// If the plugin is not found we assume the plugin is custom.
-					if ( is_wp_error( $api ) ) {
-						// Exclude our custom plugin from being ignored by git.
-						if ( empty( $assoc_args['no-gitignore'] ) ) {
-							$return['exclude'][] = [ 'slug' => $slug, 'type' => 'plugin' ];
-						}
-						continue;
-					}
-					// Plugin version.
-					if ( ! empty( $details['Version'] ) ) {
-						$return['yaml'][ $slug ]['version'] = $details['Version'];
-					}
-					// Plugin network activation.
-					if ( ! empty( $details['Network'] ) ) {
-						$return['yaml'][ $slug ]['activate-network'] = 'yes';
-					}
-				}
-			}
-		}
-
-		return $return;
-	}
-
-
-	private function generate_themes( $assoc_args = NULL ) {
-		// Themes.
-		$installed_themes = wp_get_themes();
-		$return           = NULL;
-		if ( ! empty( $installed_themes ) ) {
-			$current_theme = get_stylesheet();
-			foreach ( $installed_themes as $slug => $theme ) {
-				if ( $slug == $current_theme ) {
-					// Check theme information on wp official repository.
-					$api = themes_api( 'theme_information', [ 'slug' => $slug ] );
-					// If the theme is not found we assume the plugin is custom.
-					if ( is_wp_error( $api ) ) {
-						// Exclude our custom theme from being ignored by git.
-						if ( empty( $assoc_args['no-gitignore'] ) ) {
-							$return['exclude'][] = [ 'slug' => $slug, 'type' => 'theme' ];
-						}
-						continue;
-					}
-					// Theme version.
-					if ( ! empty( $theme->display( 'Version' ) ) ) {
-						$return['yaml'][ $slug ]['version'] = $theme->display( 'Version' );
-					}
-				}
-			}
-		}
-
-		return $return;
 	}
 
 

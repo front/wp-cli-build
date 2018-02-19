@@ -45,4 +45,27 @@ class Build_File {
 		return [];
 	}
 
+	public function get_core_version() {
+		if ( ! empty( $this->build['core']['download']['version'] ) ) {
+			return $this->build['core']['download']['version'];
+		}
+
+		return NULL;
+	}
+
+	public function get_plugin_version( $slug ) {
+		if ( ! empty( $this->build['plugins'][ $slug ]['version'] ) ) {
+			return $this->build['plugins'][ $slug ]['version'];
+		}
+
+		return NULL;
+	}
+
+	public function get_theme_version( $slug ) {
+		if ( ! empty( $this->build['themes'][ $slug ]['version'] ) ) {
+			return $this->build['themes'][ $slug ]['version'];
+		}
+
+		return NULL;
+	}
 }

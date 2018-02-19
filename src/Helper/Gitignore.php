@@ -16,8 +16,8 @@ class Gitignore {
 			// Check if the path is already in ignore file.
 			if ( ! empty( $gitignore ) ) {
 				// Remove existing block from gitignore.
-				$start = array_search( "# START WP-CLI Build\n", $gitignore );
-				$end   = array_search( "# END WP-CLI Build\n", $gitignore );
+				$start = array_search( "# START WP-CLI BUILD BLOCK\n", $gitignore );
+				$end   = array_search( "# END WP-CLI BUILD BLOCK\n", $gitignore );
 				if ( ( is_int( $start ) ) && ( is_int( $end ) ) ) {
 					for ( $i = $start; $i <= $end; $i ++ ) {
 						unset( $gitignore[ $i ] );
@@ -26,8 +26,12 @@ class Gitignore {
 			}
 		}
 		// WP-CLI Build block.
-		$gitignore[] = "# START WP-CLI Build\n";
-		$gitignore[] = "\n/*\n";
+		$gitignore[] = "# START WP-CLI BUILD BLOCK\n";
+		$gitignore[] = "# ------------------------------------------------------------\n";
+		$gitignore[] = "# This block is generated everytime you run 'wp build generate'\n";
+		$gitignore[] = "# Rules: Exclude everything from git except for your custom plugins/themes\n";
+		$gitignore[] = "# ------------------------------------------------------------\n";
+		$gitignore[] = "/*\n";
 		$gitignore[] = "!.gitignore\n";
 		$gitignore[] = "!build.yml\n";
 		$gitignore[] = "!wp-content\n";
@@ -38,14 +42,18 @@ class Gitignore {
 		$gitignore[] = "wp-content/themes/*\n";
 		// Generates exclude items.
 		if ( ! empty( $exclude_items ) ) {
-			$gitignore[] = "\n# Exclude custom plugins/themes\n";
+			$gitignore[] = "# ------------------------------------------------------------\n";
+			$gitignore[] = "# Your custom themes/plugins\n";
+			$gitignore[] = "# Added dynamically by WP-Build generate command\n";
+			$gitignore[] = "# ------------------------------------------------------------\n";
 			foreach ( $exclude_items as $item ) {
 				if ( ( ! empty( $item['slug'] ) ) && ( ! empty( $item['type'] ) ) ) {
 					$gitignore[] = "!wp-content/{$item['type']}s/{$item['slug']}/\n";
 				}
 			}
 		}
-		$gitignore[] = "\n# END WP-CLI Build\n";
+		$gitignore[] = "# ------------------------------------------------------------\n";
+		$gitignore[] = "# END WP-CLI BUILD BLOCK\n";
 		// Put content in .gitignore.
 		if ( ! empty( $gitignore ) ) {
 			@file_put_contents( $gitignore_path, $gitignore );
