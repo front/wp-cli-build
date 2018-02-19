@@ -1,33 +1,43 @@
 WP-CLI Build
 ==================
 
-Use [WP-CLI](http://wp-cli.org/) to version your plugins, themes and core! And of course: Git friendly.
+Use **WP-Cli Build** to version your plugins, themes and core of your WordPress sites! And of course: Git friendly.
+```sh
+$ wp build
+```
 
-Quick links: [Installing](#installing) | [Using](#using) | [Contributing](#contributing)
+## Getting Started
+### Prerequistes
+This package requires [WP-CLI](https://make.wordpress.org/cli/handbook/installing/) v0.23.0 or greater. You can check WP-CLI version with `$ wp --version` and update to the latest stable release with `$ wp cli update`. 
 
-## Installing
-Installing this package requires WP-CLI v0.23.0 or greater. Update to the latest stable release with `wp cli update`.
+### Installing
+You could install **WP-Cli Build** from our git repo:
+```sh
+$ wp package install https://github.com/front/wp-cli-build.git
+```
 
-Once you've done so, you can install this package with `wp package install https://github.com/front/wp-cli-build.git`.
+## Quick Start
+You need WP installed to get started, so if you don't already have an existing site: `wp core download and install`.
 
-You need WP installed to get started, so if you don't already have an existing site:
-`wp core download` and install. 
+To generate your **build.yml** file with your WP site core configuration and the list of used public plugins, run
+```sh
+$ wp build-generate
+```
+It will also rewrite your **.gitignore** file with the plugins paths which shouldn’t be versinoated. 
 
-With that done, generate your barebones build file:
-`wp build-generate`
+For more options, see `$ wp build-generate --help`
 
-For options, see `wp build-generate --help`
+## Using build.yml
+You can run `wp build` to install the WordPress core of your site, 3rd party plugins and themes.
 
-## Using the build file
+### Updating build.yml
+When you add a new plugin to your WP site, you should run `wp build generate` to update **build.yml** and **.gitignore** files.
 
-`wp build`
-
-This parses the yaml build file and will process core, plugins and themes.
-
+For more options run `wp --help build`
 
 ## Contributing
 
-We appreciate you taking the initiative to contribute to this project.
+We appreciate you taking the initiative to contribute to this project!
 
 Contributing isn’t limited to just code. We encourage you to contribute in the way that best fits your abilities, by writing tutorials, giving a demo at your local meetup, helping other users with their support questions, or revising our documentation.
 
