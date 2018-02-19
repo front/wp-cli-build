@@ -20,7 +20,7 @@ class Build_File {
 		$file_path = ( Utils::is_absolute_path( $this->filename ) ) ? $this->filename : realpath( '.' ) . '/' . $this->filename;
 		// Check if the file exists.
 		if ( ! file_exists( $file_path ) ) {
-			WP_CLI::error( 'Build file (' . $this->filename . ') not found.' );
+			return NULL;
 		}
 		// Check if the Build file is a valid yaml file.
 		try {

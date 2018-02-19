@@ -2,7 +2,6 @@
 
 use Symfony\Component\Yaml\Yaml;
 use WP_CLI;
-use WP_CLI_Build\Helper\Build_File;
 use WP_CLI_Build\Helper\Gitignore;
 use WP_CLI_Build\Helper\Utils as HelperUtils;
 use WP_CLI_Build\Processor\Generate;
@@ -43,19 +42,17 @@ class Build_Generate_Command extends \WP_CLI_Command {
 		$build_filename = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
 
 		// If file exists, prompt if the user want to replace it.
-		$build_file = NULL;
 		if ( file_exists( HelperUtils::wp_path( $build_filename ) ) ) {
 			if ( empty( $assoc_args['yes'] ) ) {
 				WP_CLI::confirm( WP_CLI::colorize( "%WFile %Y$build_filename%n%W exists, do you want to overwrite it?%n" ) );
 			}
-			$build_file = new Build_File( $build_filename );
 		}
 
 		// Process status.
 		WP_CLI::line( WP_CLI::colorize( "%WGenerating build file (%n%Y$build_filename%n%W), please wait..." ) );
 
 		// Get structure for build file.
-		$generator = new Generate( $assoc_args, $build_file );
+		$generator = new Generate( $assoc_args, $build_filename );
 		$build     = $generator->get();
 
 		// YAML content.

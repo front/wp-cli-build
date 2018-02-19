@@ -1,6 +1,7 @@
 <?php namespace WP_CLI_Build\Processor;
 
 use WP_CLI\Utils;
+use WP_CLI_Build\Helper\Build_File;
 use WP_CLI_Build\Helper\Utils as HelperUtils;
 
 class Generate {
@@ -8,9 +9,9 @@ class Generate {
 	private $assoc_args;
 	private $build_file;
 
-	public function __construct( $assoc_args = NULL, $build_file = NULL ) {
+	public function __construct( $assoc_args = NULL, $build_filename = NULL ) {
 		$this->assoc_args = $assoc_args;
-		$this->build_file = $build_file;
+		$this->build_file = new Build_File( $build_filename );
 	}
 
 	public function get() {
