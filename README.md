@@ -1,7 +1,9 @@
 WP-CLI Build
 ==================
 
-Use **WP-Cli Build** to version your plugins, themes and core of your WordPress sites! And of course: Git friendly.
+Version your plugins, themes and core of your WordPress sites! 
+
+**WP-Cli Build** helps you to start your WP site in an organized way and simplifies its plugins maintenance: you don't need to versionate code that isn't maintain for you like WordPress plugins and themes. Also it could help you to rebuild your site from a hack or something else that had compromised the plugins. 
 ```sh
 $ wp build
 ```
@@ -28,15 +30,17 @@ It will also rewrite your **.gitignore** file with the plugins paths which shoul
 For more options, see `$ wp build-generate --help`
 
 ## Using build.yml
-You can run `wp build` to install the WordPress core of your site, 3rd party plugins and themes.
+You can run `$ wp build` to install the WordPress core of your site, 3rd party plugins and themes.
 
 ### Updating build.yml
-When you add a new plugin to your WP site, you should run `wp build generate` to update **build.yml** and **.gitignore** files.
+When you add a new plugin to your WP site, you should run `$ wp build generate` to update **build.yml** and **.gitignore** files.
 
-For more options run `wp --help build`
+For more options run `$ wp --help build`
+
+### Rebuild
+Adding `--rebuild` option to `$ wp build` command forces all plugins to be deleted and downloaded again. It helps you to make sure plugins remain original.  
 
 ## Contributing
-
 We appreciate you taking the initiative to contribute to this project!
 
 Contributing isn’t limited to just code. We encourage you to contribute in the way that best fits your abilities, by writing tutorials, giving a demo at your local meetup, helping other users with their support questions, or revising our documentation.
