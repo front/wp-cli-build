@@ -28,8 +28,8 @@ class Gitignore {
 		// WP-CLI Build block.
 		$gitignore[] = "# START WP-CLI BUILD BLOCK\n";
 		$gitignore[] = "# ------------------------------------------------------------\n";
-		$gitignore[] = "# This block is generated everytime you run 'wp build generate'\n";
-		$gitignore[] = "# Rules: Exclude everything from git except for your custom plugins/themes\n";
+		$gitignore[] = "# This block is auto generated every time you run 'wp build-generate'\n";
+		$gitignore[] = "# Rules: Exclude everything from Git except for your custom plugins and themes (that is: those that are not on wordpress.org)\n";
 		$gitignore[] = "# ------------------------------------------------------------\n";
 		$gitignore[] = "/*\n";
 		$gitignore[] = "!.gitignore\n";
