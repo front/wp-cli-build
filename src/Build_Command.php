@@ -14,6 +14,9 @@ class Build_Command extends \WP_CLI_Command {
 	 * [--file=<file>]
 	 * : Specify custom build file (default: build.yml)
 	 *
+	 * [--rebuild]
+	 * : Removes plugins/themes and re-download everything (it deletes entire plugin/theme folder!)
+	 *
 	 * [--ignore-core]
 	 * : Don't process core
 	 *
@@ -32,7 +35,13 @@ class Build_Command extends \WP_CLI_Command {
 	 */
 	public function __invoke( $args = NULL, $assoc_args = NULL ) {
 
-		WP_CLI::line( WP_CLI::colorize( '%gLoading build.yml%n' ) );
+		$build_filename = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
+		WP_CLI::line( WP_CLI::colorize( "%GParsing %W$build_filename%n%G, please wait...%n" ) );
+
+		// Rebuild mode check
+		if ( ! empty( $assoc_args['rebuild'] ) ) {
+			WP_CLI::confirm( WP_CLI::colorize( "\n%RREBUILD MODE: Items will be deleted!\n%n%YAre you sure you want to continue?%n" ) );
+		}
 
 		// Process core.
 		if ( empty( $assoc_args['no-core'] ) ) {
@@ -40,23 +49,24 @@ class Build_Command extends \WP_CLI_Command {
 			$core = $core->process();
 		}
 
-		// Process plugins.
+		// Item processor.
 		$item = new Item( $assoc_args );
+
+		// Process plugins.
 		if ( empty( $assoc_args['no-plugins'] ) ) {
 			$plugins = $item->run( 'plugin' );
 		}
 
 		// Process themes.
-		$item = new Item( $assoc_args );
 		if ( empty( $assoc_args['no-themes'] ) ) {
 			$themes = $item->run( 'theme' );
 		}
 
 		// Nothing to do!
 		if ( empty( $core ) && empty( $plugins ) && empty( $themes ) ) {
-			WP_CLI::line( "Nothing to do." );
+			WP_CLI::line( WP_CLI::colorize( "%WNothing to do.%n" ) );
 		} else {
-			WP_CLI::line( "Finished." );
+			WP_CLI::line( WP_CLI::colorize( "%WFinished.%n" ) );
 		}
 
 	}

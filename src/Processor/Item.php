@@ -15,6 +15,7 @@ class Item {
 		$build_filename   = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
 		$this->build      = new Build_File( $build_filename );
 		$this->filesystem = new Filesystem();
+		$this->rebuild    = empty( $assoc_args['rebuild'] ) ? FALSE : TRUE;
 	}
 
 	// Starts processing items.
@@ -46,7 +47,7 @@ class Item {
 					$item_info['version'] = $this->set_item_version( $type, $item, $item_info['version'] );
 				}
 				// Download, install or activate the item depending on WordPress installation status.
-				if ( $wp_installed ) {
+				if ( ( $wp_installed ) && ( ! $this->rebuild ) ) {
 					// Install if the plugin doesn't exist.
 					$item_status = $this->status( $type, $item );
 					if ( $item_status === FALSE ) {
@@ -65,6 +66,10 @@ class Item {
 						}
 					}
 				} else {
+					// If we're in rebuild mode, delete item folder.
+					if ( $this->rebuild ) {
+						$this->delete_item_folder( $type, $item );
+					}
 					$status = $this->download( $type, $item, $item_info );
 				}
 
@@ -230,6 +235,16 @@ class Item {
 		}
 
 		return ( $version === '*' ) ? 'latest' : $version;
+	}
+
+	private function delete_item_folder( $type = NULL, $item = NULL ) {
+		if ( ( ! empty( $type ) ) && ( ! empty( $item ) ) ) {
+			$folder = Utils::wp_path( 'wp-content/' . $type . 's/' . $item );
+
+			return $this->filesystem->remove( $folder );
+		}
+
+		return FALSE;
 	}
 
 }
