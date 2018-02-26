@@ -44,7 +44,7 @@ class Gitignore {
 		if ( ! empty( $exclude_items ) ) {
 			$gitignore[] = "# ------------------------------------------------------------\n";
 			$gitignore[] = "# Your custom themes/plugins\n";
-			$gitignore[] = "# Added dynamically by WP-Build generate command\n";
+			$gitignore[] = "# Added automagically by WP-CLI Build (wp build-generate)\n";
 			$gitignore[] = "# ------------------------------------------------------------\n";
 			foreach ( $exclude_items as $item ) {
 				if ( ( ! empty( $item['slug'] ) ) && ( ! empty( $item['type'] ) ) ) {
