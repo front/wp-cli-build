@@ -38,9 +38,9 @@ class Build_Command extends \WP_CLI_Command {
 		$build_filename = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
 		WP_CLI::line( WP_CLI::colorize( "%GParsing %W$build_filename%n%G, please wait...%n" ) );
 
-		// Rebuild mode check
-		if ( ! empty( $assoc_args['rebuild'] ) ) {
-			WP_CLI::confirm( WP_CLI::colorize( "\n%RREBUILD MODE: Items will be deleted!\n%n%YAre you sure you want to continue?%n" ) );
+		// Clean mode check
+		if ( ! empty( $assoc_args['clean'] ) ) {
+			WP_CLI::confirm( WP_CLI::colorize( "\n%RItems will be deleted! => This will delete and re-download all plugins and themes listed in build.yml\n%n%YAre you sure you want to continue?%n" ) );
 		}
 
 		// Process core.
