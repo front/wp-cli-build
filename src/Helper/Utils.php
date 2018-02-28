@@ -7,6 +7,8 @@ use Alchemy\Zippy\Exception\RuntimeException;
 use Alchemy\Zippy\Zippy;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\IOException;
+use PharIo\Version\Version;
+use PharIo\Version\VersionConstraintParser;
 
 class Utils {
 
@@ -257,6 +259,75 @@ class Utils {
 		}
 
 		return empty( $assoc_args['file'] ) ? 'build.json' : $assoc_args['file'];
+	}
+
+	public static function strposa( $haystack, $needles = array(), $offset = 0 ) {
+		$chr = array();
+		foreach ( $needles as $needle ) {
+			$res = strpos( $haystack, $needle, $offset );
+			if ( $res !== FALSE ) {
+				$chr[ $needle ] = $res;
+			}
+		}
+		if ( empty( $chr ) ) {
+			return FALSE;
+		}
+
+		return min( $chr );
+	}
+
+	public static function version_comply( $version, $latest_version ) {
+		// Determine the item version if we have '^', '~' or '*'.
+		if ( Utils::strposa( $version, [ '~', '^', '*' ] ) !== FALSE ) {
+			// Return latest version if '*'.
+			if ( strpos( $version, '*' ) ) {
+				return $latest_version;
+			}
+			// Figure out version if '^' or '~' operators are used.
+			$parser           = new VersionConstraintParser();
+			$caret_constraint = $parser->parse( $version );
+			try {
+				$complies = $caret_constraint->complies( new Version( $latest_version ) );
+				if ( $complies ) {
+					return $latest_version;
+				}
+			} catch ( \Exception $e ) {
+			}
+		}
+
+		return $version;
+	}
+
+	public static function determine_version( $item_version, $wporg_latest, $wporg_versions ) {
+		// Determine the item version if we have '^', '~' or '*'.
+		if ( Utils::strposa( $item_version, [ '~', '^', '*' ] ) !== FALSE ) {
+			// Return latest version if '*'.
+			if ( strpos( $item_version, '*' ) ) {
+				return $wporg_latest;
+			}
+			// Figure out version if '^' or '~' operators are used.
+			if ( ! empty( $wporg_versions ) ) {
+				$parser           = new VersionConstraintParser();
+				$caret_constraint = $parser->parse( $item_version );
+				foreach ( $wporg_versions as $version => $url ) {
+					$complies = FALSE;
+					try {
+						$complies = $caret_constraint->complies( new Version( $version ) );
+					} catch ( \Exception $e ) {
+					}
+					if ( $complies ) {
+						$item_version = $version;
+					}
+				}
+				if ( Utils::strposa( $item_version, [ '~', '^', '*' ] ) !== FALSE ) {
+					return $wporg_latest;
+				}
+
+				return $item_version;
+			}
+		}
+
+		return $item_version;
 	}
 
 }

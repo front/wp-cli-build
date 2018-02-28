@@ -11,7 +11,7 @@ class Item {
 
 	public function __construct( $assoc_args = NULL ) {
 		// Build file.
-		$this->build      = new Build_Parser( Utils::get_build_filename($assoc_args) );
+		$this->build      = new Build_Parser( Utils::get_build_filename( $assoc_args ) );
 		$this->filesystem = new Filesystem();
 		$this->clean      = empty( $assoc_args['clean'] ) ? FALSE : TRUE;
 	}
@@ -40,10 +40,8 @@ class Item {
 			$wp_installed = Utils::wp_installed();
 			$status       = FALSE;
 			foreach ( $items as $item => $item_info ) {
-				// Sets item latest version
-				if ( $item_info['version'] == '*' || $item_info['version'] == 'latest' ) {
-					$item_info['version'] = $this->set_item_version( $type, $item, $item_info['version'] );
-				}
+				// Sets item version.
+				$item_info['version'] = $this->set_item_version( $type, $item, $item_info['version'] );
 				// Download, install or activate the item depending on WordPress installation status.
 				if ( ( $wp_installed ) && ( ! $this->clean ) ) {
 					// Install if the plugin doesn't exist.
@@ -224,15 +222,15 @@ class Item {
 		return NULL;
 	}
 
-	private function set_item_version( $type = NULL, $slug = NULL, $version = '*' ) {
+	private function set_item_version( $type = NULL, $slug = NULL, $item_version = '*' ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $slug ) ) ) {
-			$item_info = $this->get_item_info( $type, $slug, $version );
+			$item_info = $this->get_item_info( $type, $slug, $item_version );
 			if ( ! empty( $item_info->version ) ) {
 				return $item_info->version;
 			}
 		}
 
-		return ( $version === '*' ) ? 'latest' : $version;
+		return ( $item_version === '*' ) ? 'latest' : $item_version;
 	}
 
 	private function delete_item_folder( $type = NULL, $item = NULL ) {
