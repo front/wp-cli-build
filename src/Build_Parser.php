@@ -1,16 +1,20 @@
-<?php namespace WP_CLI_Build\Helper;
+<?php namespace WP_CLI_Build;
 
 use Symfony\Component\Yaml\Yaml;
 use WP_CLI;
+use WP_CLI_Build\Helper\Utils;
 
-class Build_File {
+class Build_Parser {
 
-	private $filename = 'build.yml';
+	private $filename = 'build.json';
+	private $format = 'json';
 	private $build = [];
 
-	public function __construct( $file ) {
+	public function __construct( $filename ) {
 		// Set Build file.
-		$this->filename = empty( $file ) ? 'build.yml' : $file;
+		$this->filename = empty( $filename ) ? 'build.json' : $filename;
+		// Set format.
+		$this->format = ( strpos( $this->filename, 'yml' ) !== FALSE ) ? 'yml' : 'json';
 		// Parse the Build file and Build sure it's valid.
 		$this->parse();
 	}
@@ -23,11 +27,28 @@ class Build_File {
 			return NULL;
 		}
 		// Check if the Build file is a valid yaml file.
-		try {
-			$this->build = Yaml::parse( file_get_contents( $file_path ) );
-		} catch ( \Exception $e ) {
-			WP_CLI::error( 'Error parsing YAML from Build file (' . $this->filename . ').' );
+		if ( $this->format == 'yml' ) {
+			try {
+				$this->build = Yaml::parse( file_get_contents( $file_path ) );
+			} catch ( \Exception $e ) {
+				WP_CLI::error( 'Error parsing YAML from Build file (' . $this->filename . ').' );
+
+				return FALSE;
+			}
+
+			return TRUE;
 		}
+
+		// Build.json
+		try {
+			$this->build = json_decode( file_get_contents( $file_path ), TRUE );
+		} catch ( \Exception $e ) {
+			WP_CLI::error( 'Error parsing JSON from Build file (' . $this->filename . ').' );
+
+			return FALSE;
+		}
+
+		return TRUE;
 	}
 
 	public function get( $key = NULL, $sub_key = NULL ) {

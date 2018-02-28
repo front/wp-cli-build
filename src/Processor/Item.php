@@ -1,8 +1,7 @@
 <?php namespace WP_CLI_Build\Processor;
 
 use Symfony\Component\Filesystem\Filesystem;
-use WP_CLI\Utils as WP_CLI_Utils;
-use WP_CLI_Build\Helper\Build_File;
+use WP_CLI_Build\Build_Parser;
 use WP_CLI_Build\Helper\Utils;
 use WP_CLI_Build\Helper\WP_API;
 
@@ -12,10 +11,9 @@ class Item {
 
 	public function __construct( $assoc_args = NULL ) {
 		// Build file.
-		$build_filename   = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
-		$this->build      = new Build_File( $build_filename );
+		$this->build      = new Build_Parser( Utils::get_build_filename($assoc_args) );
 		$this->filesystem = new Filesystem();
-		$this->clean    = empty( $assoc_args['clean'] ) ? FALSE : TRUE;
+		$this->clean      = empty( $assoc_args['clean'] ) ? FALSE : TRUE;
 	}
 
 	// Starts processing items.
