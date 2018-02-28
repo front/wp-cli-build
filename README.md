@@ -1,33 +1,49 @@
 WP-CLI Build
 ==================
 
-Use [WP-CLI](http://wp-cli.org/) to version your plugins, themes and core! And of course: Git friendly.
+Version your plugins, themes and core of your WordPress sites! 
 
-Quick links: [Installing](#installing) | [Using](#using) | [Contributing](#contributing)
+**WP-CLI Build** helps you to start your WP site in an organized way and simplifies maintenance: you don't need to version code that you don't maintain yourself. This makes it easy to have auto updates, without messing up your Git setup. WP-CLI Build is also useful for rebuilding your site after a hack. 
+```sh
+$ wp build
+```
 
-## Installing
-Installing this package requires WP-CLI v0.23.0 or greater. Update to the latest stable release with `wp cli update`.
+## Getting Started
+### Prerequistes
+This package requires [WP-CLI](https://make.wordpress.org/cli/handbook/installing/) v1.5 or greater. You can check WP-CLI version with `$ wp --version` and update to the latest stable release with `$ wp cli update`. 
 
-Once you've done so, you can install this package with `wp package install https://github.com/front/wp-cli-build.git`.
+### Installing
+Install **WP-CLI Build** from our git repo:
+```sh
+$ wp package install front/wp-cli-build
+```
 
-You need WP installed to get started, so if you don't already have an existing site:
-`wp core download` and install. 
+## Quick Start
+You need WP installed to get started, so if you don't already have an existing site: `wp core download and install`.
 
-With that done, generate your barebones build file:
-`wp build-generate`
+To generate your **build.yml** file with your WP site core configuration and the list of used public plugins, run
+```sh
+$ wp build-generate
+```
+It will also rewrite your **.gitignore** to make sure only custom plugins and themes are indexed.
 
-For options, see `wp build-generate --help`
+*Note: Only active plugins and themes will be listed in build.yml and .gitignore.*
 
-## Using the build file
+For more options, see `$ wp build-generate --help`
 
-`wp build`
+## Using build.yml
+You can run `$ wp build` to install the WordPress core of your site, 3rd party plugins and themes. It parses your build.yml file, and works its magic.
 
-This parses the yaml build file and will process core, plugins and themes.
+### Updating build.yml and .gitignore
+When you add a new plugin to your WP site, you should run `$ wp build-generate` to update **build.yml** and **.gitignore** files.
 
+For more options run `$ wp --help build-generate` and `$ wp --help build`
+
+### Clean install
+Adding `--clean` option to `$ wp build` command forces all plugins to be deleted and downloaded again. It helps you make sure plugins are not corrupted.  
 
 ## Contributing
-
-We appreciate you taking the initiative to contribute to this project.
+We appreciate you taking the initiative to contribute to this project!
 
 Contributing isn’t limited to just code. We encourage you to contribute in the way that best fits your abilities, by writing tutorials, giving a demo at your local meetup, helping other users with their support questions, or revising our documentation.
 

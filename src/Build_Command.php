@@ -3,6 +3,7 @@
 use WP_CLI;
 use WP_CLI_Build\Processor\Core;
 use WP_CLI_Build\Processor\Item;
+use WP_CLI_Build\Helper\Utils;
 
 class Build_Command extends \WP_CLI_Command {
 
@@ -12,10 +13,10 @@ class Build_Command extends \WP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * [--file=<file>]
-	 * : Specify custom build file (default: build.yml)
+	 * : Specify custom build file (default: build.json)
 	 *
-	 * [--rebuild]
-	 * : Removes plugins/themes and re-download everything (it deletes entire plugin/theme folder!)
+	 * [--clean]
+	 * : Deletes and re-download all plugins and themes listed in build file
 	 *
 	 * [--ignore-core]
 	 * : Don't process core
@@ -29,18 +30,18 @@ class Build_Command extends \WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp build
-	 *     wp build --file=production.yml --no-plugins
+	 *     wp build --file=production.json --no-plugins
 	 *
 	 * @when  before_wp_load
 	 */
 	public function __invoke( $args = NULL, $assoc_args = NULL ) {
 
-		$build_filename = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
+		$build_filename = Utils::get_build_filename( $assoc_args );
 		WP_CLI::line( WP_CLI::colorize( "%GParsing %W$build_filename%n%G, please wait...%n" ) );
 
-		// Rebuild mode check
-		if ( ! empty( $assoc_args['rebuild'] ) ) {
-			WP_CLI::confirm( WP_CLI::colorize( "\n%RREBUILD MODE: Items will be deleted!\n%n%YAre you sure you want to continue?%n" ) );
+		// Clean mode check
+		if ( ! empty( $assoc_args['clean'] ) ) {
+			WP_CLI::confirm( WP_CLI::colorize( "\n%RItems will be deleted! => This will delete and re-download all plugins and themes listed in build file.\n%n%YAre you sure you want to continue?%n" ) );
 		}
 
 		// Process core.

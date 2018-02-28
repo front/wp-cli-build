@@ -1,7 +1,7 @@
 <?php namespace WP_CLI_Build\Processor;
 
 use WP_CLI;
-use WP_CLI_Build\Helper\Build_File;
+use WP_CLI_Build\Build_Parser;
 use WP_CLI_Build\Helper\Utils;
 
 class Core {
@@ -10,8 +10,7 @@ class Core {
 
 	public function __construct( $assoc_args = NULL ) {
 		// Build file.
-		$build_filename = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
-		$this->build    = new Build_File( $build_filename );
+		$this->build = new Build_Parser( Utils::get_build_filename( $assoc_args ) );
 	}
 
 	public function process() {

@@ -1,8 +1,7 @@
 <?php namespace WP_CLI_Build\Processor;
 
 use Symfony\Component\Filesystem\Filesystem;
-use WP_CLI\Utils as WP_CLI_Utils;
-use WP_CLI_Build\Helper\Build_File;
+use WP_CLI_Build\Build_Parser;
 use WP_CLI_Build\Helper\Utils;
 use WP_CLI_Build\Helper\WP_API;
 
@@ -12,10 +11,9 @@ class Item {
 
 	public function __construct( $assoc_args = NULL ) {
 		// Build file.
-		$build_filename   = empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
-		$this->build      = new Build_File( $build_filename );
+		$this->build      = new Build_Parser( Utils::get_build_filename($assoc_args) );
 		$this->filesystem = new Filesystem();
-		$this->rebuild    = empty( $assoc_args['rebuild'] ) ? FALSE : TRUE;
+		$this->clean      = empty( $assoc_args['clean'] ) ? FALSE : TRUE;
 	}
 
 	// Starts processing items.
@@ -47,7 +45,7 @@ class Item {
 					$item_info['version'] = $this->set_item_version( $type, $item, $item_info['version'] );
 				}
 				// Download, install or activate the item depending on WordPress installation status.
-				if ( ( $wp_installed ) && ( ! $this->rebuild ) ) {
+				if ( ( $wp_installed ) && ( ! $this->clean ) ) {
 					// Install if the plugin doesn't exist.
 					$item_status = $this->status( $type, $item );
 					if ( $item_status === FALSE ) {
@@ -66,8 +64,8 @@ class Item {
 						}
 					}
 				} else {
-					// If we're in rebuild mode, delete item folder.
-					if ( $this->rebuild ) {
+					// If we're in clean mode, delete item folder.
+					if ( $this->clean ) {
 						$this->delete_item_folder( $type, $item );
 					}
 					$status = $this->download( $type, $item, $item_info );

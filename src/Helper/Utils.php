@@ -235,4 +235,21 @@ class Utils {
 		return FALSE;
 	}
 
+	public static function convert_to_numeric( $version = NULL ) {
+		if ( ( ! empty( $version ) ) && ( is_numeric( $version ) ) ) {
+			return strpos( $version, '.' ) === FALSE ? (int) $version : (float) $version;
+		}
+
+		return $version;
+	}
+
+	public static function get_build_filename( $assoc_args = NULL ) {
+		// Legacy YAML support.
+		if ( file_exists( self::wp_path( 'build.yml' ) ) ) {
+			return 'build.yml';
+		}
+
+		return empty( $assoc_args['file'] ) ? 'build.json' : $assoc_args['file'];
+	}
+
 }
