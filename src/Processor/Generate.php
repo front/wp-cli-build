@@ -224,7 +224,7 @@ class Generate {
 		$gitignore[] = "# ------------------------------------------------------------\n";
 		$gitignore[] = "/*\n";
 		$gitignore[] = "!.gitignore\n";
-		$gitignore[] = "!build.yml\n";
+		$gitignore[] = "!{$this->build_filename}\n";
 		$gitignore[] = "!wp-content\n";
 		$gitignore[] = "wp-content/*\n";
 		$gitignore[] = "!wp-content/plugins\n";
