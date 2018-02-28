@@ -3,6 +3,7 @@
 use WP_CLI;
 use WP_CLI_Build\Build_Parser;
 use WP_CLI_Build\Helper\Utils;
+use WP_CLI_Build\Helper\WP_API;
 
 class Core {
 
@@ -42,18 +43,17 @@ class Core {
 
 	// Update WordPress if build.yml version is higher than currently installed.
 	private function update_wordpress() {
-
 		// Config
-		$config            = $this->build->get( 'core', 'download' );
-		$installed_version = Utils::wp_version();
-		$config_version    = empty( $config['version'] ) ? NULL : $config['version'];
-
+		$config             = $this->build->get( 'core', 'download' );
+		$installed_version  = Utils::wp_version();
+		$config_version     = empty( $config['version'] ) ? NULL : $config['version'];
+		$version_to_install = WP_API::core_version_check( $config_version );
 		// Compare installed version with the one in build.yml.
-		if ( version_compare( $installed_version, $config_version ) === - 1 ) {
-
+		if ( version_compare( $installed_version, $version_to_install ) === - 1 ) {
+			// Change config version.
+			$config['version'] = $version_to_install;
 			// Status.
-			Utils::line( "- Updating WordPress (%W{$installed_version}%n => %Y{$config_version}%n)" );
-
+			Utils::line( "- Updating WordPress (%W{$installed_version}%n => %Y{$version_to_install}%n)" );
 			// Update WordPress.
 			$result = Utils::launch_self( 'core', [ 'update' ], $config, FALSE, TRUE, [], FALSE, FALSE );
 
@@ -74,7 +74,7 @@ class Core {
 		if ( ( ( $version_check === FALSE ) || ( ( ! empty( $config['force'] ) ) && ( $config['force'] === TRUE ) ) ) ) {
 			if ( ! empty( $config['version'] ) ) {
 				// WP Version.
-				$download_args['version'] = $config['version'];
+				$download_args['version'] = WP_API::core_version_check( $config['version'] );
 				// Locale.
 				if ( ! empty( $config['locale'] ) ) {
 					$download_args['locale'] = $config['locale'];
@@ -84,7 +84,7 @@ class Core {
 					$download_args['force'] = TRUE;
 				}
 				// Download WordPress.
-				$extra = empty( $config['locale'] ) ? "%G{$config['version']}%n (%Yen_US%n)" : "%G{$config['version']}%n (%Y{$config['locale']}%n)";
+				$extra = empty( $config['locale'] ) ? "%G{$config['version']}%n (%Yen_US%n)" : "%G{$download_args['version']}%n (%Y{$config['locale']}%n)";
 				Utils::line( "- Downloading WordPress $extra" );
 				$result = Utils::launch_self( 'core', [ 'download' ], $download_args, FALSE, TRUE, [], FALSE, FALSE );
 
