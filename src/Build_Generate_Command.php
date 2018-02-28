@@ -1,6 +1,5 @@
 <?php namespace WP_CLI_Build;
 
-use Symfony\Component\Yaml\Yaml;
 use WP_CLI;
 use WP_CLI_Build\Helper\Gitignore;
 use WP_CLI_Build\Helper\Utils;
@@ -15,6 +14,9 @@ class Build_Generate_Command extends \WP_CLI_Command {
 	 *
 	 * [--output=<file>]
 	 * : Where to output build generation result (yml file)
+	 *
+	 * [--format]
+	 * : Build file format: json or yml
 	 *
 	 * [--skip-git]
 	 * : .gitignore will not be generated

@@ -3,6 +3,7 @@
 use WP_CLI\Utils as WP_CLI_Utils;
 use WP_CLI_Build\Build_Parser;
 use WP_CLI_Build\Helper\Utils;
+use Symfony\Component\Yaml\Yaml;
 
 class Generate {
 
@@ -18,7 +19,7 @@ class Generate {
 		$this->assoc_args = $assoc_args;
 		// Existing build file (if any).
 		$this->build_filename = $build_filename;
-		$this->build_file     = new Build_Parser( $build_filename );
+		$this->build_file     = new Build_Parser( Utils::get_build_filename( $assoc_args ) );
 		// WP core, plugins and themes information.
 		// Verbose output
 		Utils::line( "%WCompiling information from the existing installation, please wait...\n\n" );
@@ -51,10 +52,8 @@ class Generate {
 		Utils::line( "%WGenerating %n%Y$this->build_filename%n%W with the items from %Ywp.org%n%W, please wait...%n" );
 
 		// YAML.
-		if ( ! empty( $this->assoc_args['format'] ) ) {
-			if ( $this->assoc_args['format'] == 'yaml' ) {
-				$content = Yaml::dump( $build, 10 );
-			}
+		if ( ( ( ! empty( $this->assoc_args['format'] ) ) && ( $this->assoc_args['format'] == 'yml' ) ) || ( strpos( $this->build_filename, 'yml' ) !== FALSE ) ) {
+			$content = Yaml::dump( $build, 10 );
 		}
 
 		// JSON.
@@ -78,15 +77,17 @@ class Generate {
 	public function create_gitignore() {
 		$custom_items = [];
 		if ( ! empty( $this->plugins['custom'] ) ) {
-			$custom_items = array_merge( $custom_items, $this->plugins['custom'] );
+			$custom_items['plugins'] = $this->plugins['custom'];
 		}
 		if ( ! empty( $this->themes['custom'] ) ) {
-			$custom_items = array_merge( $custom_items, $this->themes['custom'] );
+			$custom_items['themes'] = $this->themes['custom'];
 		}
 
 		// Skip .gitignore creation.
 		if ( empty( $custom_items ) ) {
 			Utils::line( "%WNo %Rcustom%n%W items found, skipping %Y.gitignore%n%W creation.%n\n" );
+
+			return FALSE;
 		}
 
 		// Create .gitignore.
@@ -182,7 +183,7 @@ class Generate {
 					$origin_colorize = ( $origin == 'wp.org' ) ? "%Y$origin%n" : "%R$origin%n";
 					Utils::line( "%W  %n%G$slug%n%W (%n$origin_colorize%W):%n {$version}\n" );
 					// Add theme to the list.
-					$plugins[ $origin ][ $slug ]['version'] = $version;
+					$themes[ $origin ][ $slug ]['version'] = $version;
 				}
 			}
 		}
@@ -237,9 +238,11 @@ class Generate {
 			$gitignore[] = "# Your custom themes/plugins\n";
 			$gitignore[] = "# Added automagically by WP-CLI Build (wp build-generate)\n";
 			$gitignore[] = "# ------------------------------------------------------------\n";
-			foreach ( $custom_items as $item ) {
-				if ( ( ! empty( $item['slug'] ) ) && ( ! empty( $item['type'] ) ) ) {
-					$gitignore[] = "!wp-content/{$item['type']}s/{$item['slug']}/\n";
+			foreach ( $custom_items as $type => $items ) {
+				foreach ( $items as $slug => $version ) {
+					if ( ! empty( $slug ) ) {
+						$gitignore[] = "!wp-content/$type/$slug/\n";
+					}
 				}
 			}
 		}
