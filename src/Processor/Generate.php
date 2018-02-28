@@ -108,13 +108,7 @@ class Generate {
 		// Get locale
 		$locale = get_locale();
 		// If the core version from existing file is the latest, set it.
-		if ( ( $this->build_file->get_core_version() == '*' ) || ( $this->build_file->get_core_version() == 'latest' ) ) {
-			$version = '*';
-		} else {
-			// Current WordPress version.
-			$version = Utils::wp_version();
-			$version = empty( $version ) ? '*' : $version;
-		}
+		$version = ( Utils::strposa( $this->build_file->get_core_version(), [ '~', '^', '*', 'latest' ] ) !== FALSE ) ? $this->build_file->get_core_version() : Utils::wp_version();
 		// Verbose output
 		Utils::line( "  %Gversion%n: $version\n  %Glocale%n: $locale\n\n" );
 
@@ -138,7 +132,7 @@ class Generate {
 				$slug = strtolower( WP_CLI_Utils\get_plugin_name( $file ) );
 				// Plugin version.
 				$build_version = $this->build_file->get_plugin_version( $slug );
-				$version       = ( ( $build_version == '*' ) || ( $build_version == 'latest' ) ) ? '*' : $details['Version'];
+				$version       = ( Utils::strposa( $build_version, [ '~', '^', '*', 'latest' ] ) !== FALSE ) ? str_replace( 'latest', '*', $build_version ) : $details['Version'];
 				// Check if plugin is active.
 				if ( ( is_plugin_active( $file ) ) || ( ! empty( $this->assoc_args['all'] ) ) ) {
 					// Check plugin information on wp official repository.
@@ -173,7 +167,7 @@ class Generate {
 			foreach ( $installed_themes as $slug => $theme ) {
 				// Version.
 				$build_version = $this->build_file->get_theme_version( $slug );
-				$version       = ( ( $build_version == '*' ) || ( $build_version == 'latest' ) ) ? '*' : $theme->display( 'Version' );
+				$version       = ( Utils::strposa( $build_version, [ '~', '^', '*', 'latest' ] ) !== FALSE ) ? str_replace( 'latest', '*', $build_version ) : $theme->display( 'Version' );
 				if ( ( $slug == $current_theme ) || ( ! empty( $this->assoc_args['all'] ) ) ) {
 					// Check theme information on wp.org.
 					$api = themes_api( 'theme_information', [ 'slug' => $slug ] );
