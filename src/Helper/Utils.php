@@ -249,6 +249,13 @@ class Utils {
 			return 'build.yml';
 		}
 
+		// Format argument.
+		if ( ! empty( $assoc_args['format'] ) ) {
+			if ( $assoc_args['format'] == 'yml' ) {
+				return empty( $assoc_args['file'] ) ? 'build.yml' : $assoc_args['file'];
+			}
+		}
+
 		return empty( $assoc_args['file'] ) ? 'build.json' : $assoc_args['file'];
 	}
 
