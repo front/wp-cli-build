@@ -39,8 +39,8 @@ When you add a new plugin to your WP site, you should run `$ wp build-generate` 
 
 For more options run `$ wp --help build-generate` and `$ wp --help build`
 
-### Rebuild
-Adding `--rebuild` option to `$ wp build` command forces all plugins to be deleted and downloaded again. It helps you to make sure plugins are not corrupted.  
+### Clean install
+Adding `--clean` option to `$ wp build` command forces all plugins to be deleted and downloaded again. It helps you make sure plugins are not corrupted.  
 
 ## Contributing
 We appreciate you taking the initiative to contribute to this project!
