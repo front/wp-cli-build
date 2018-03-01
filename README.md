@@ -3,7 +3,7 @@ WP-CLI Build
 
 Version your plugins, themes and core of your WordPress sites! 
 
-**WP-CLI Build** helps you to start your WP site in an organized way and simplifies maintenance: you don't need to version code that you don't maintain yourself. This makes it easy to have auto updates, without messing up your Git setup. WP-CLI Build is also useful for rebuilding your site after a hack. 
+**WP-CLI Build** helps you to start your WP site in an organized way and simplifies maintenance: you don't need to version code that you don't maintain yourself like WP core, themes or 3rd party plugins. This makes it easy to have [auto updates](https://github.com/front/wp-cli-build/wiki/Auto-update-your-website), without messing up your Git setup. **WP-CLI Build** is also useful for [rebuilding your site after a hack](https://github.com/front/wp-cli-build/wiki/Rebuild-from-an-attack). 
 ```sh
 $ wp build
 ```
@@ -21,21 +21,96 @@ $ wp package install front/wp-cli-build
 ## Quick Start
 You need WP installed to get started, so if you don't already have an existing site: `wp core download and install`.
 
-To generate your **build.yml** file with your WP site core configuration and the list of used public plugins, run
+The ***build*** file is the base of **WP-CLI Build** and will contain your WP site core configuration and the list of used public plugins and themes. Last version of **WP-CLI Build** will generate a *`build.json`* file but we still support *`build.yml`*, so you can use both. 
+
+To generate the ***build*** file you should run:
 ```sh
 $ wp build-generate
 ```
-It will also rewrite your **.gitignore** to make sure only custom plugins and themes are indexed.
+It will also rewrite your ***.gitignore*** to make sure only custom plugins and themes are indexed. Bellow, you can see a sample of the *WP-CLI BUILD BLOCK* added to ***.gitignore***:
+```
+# START WP-CLI BUILD BLOCK
+# ------------------------------------------------------------
+# This block is auto generated every time you run 'wp build-generate'
+# Rules: Exclude everything from Git except for your custom plugins and themes (that is: those that are not on wordpress.org)
+# ------------------------------------------------------------
+/*
+!.gitignore
+!build.json
+!wp-content
+wp-content/*
+!wp-content/plugins
+wp-content/plugins/*
+!wp-content/themes
+wp-content/themes/*
+# ------------------------------------------------------------
+# Your custom themes/plugins
+# Added automagically by WP-CLI Build (wp build-generate)
+# ------------------------------------------------------------
+!wp-content/plugins/custom-plugin-slug/
+!wp-content/themes/custom-theme-slug/
+# ------------------------------------------------------------
+# END WP-CLI BUILD BLOCK
+```
 
-*Note: Only active plugins and themes will be listed in build.yml and .gitignore.*
+***Note:** Only active plugins and themes will be listed in **build** file and **gitignore**, unless you specify `--all` argument*.
 
 For more options, see `$ wp build-generate --help`
 
-## Using build.yml
-You can run `$ wp build` to install the WordPress core of your site, 3rd party plugins and themes. It parses your build.yml file, and works its magic.
+## Using *build* file
+You can run `$ wp build` to install the WordPress core of your site, 3rd party plugins and themes. It parses your ***build*** file, and works its magic!
 
-### Updating build.yml and .gitignore
-When you add a new plugin to your WP site, you should run `$ wp build-generate` to update **build.yml** and **.gitignore** files.
+A sample of a ***build.json*** file:
+
+```
+{
+    "core": {
+        "download": {
+            "version": "~4.9.4",
+            "locale": "en_US"
+        }
+    },
+    "plugins": {
+        "advanced-custom-fields": {
+            "version": "*"
+        },
+        "timber-library": {
+            "version": "^1.7.0"
+        },
+        "wordpress-seo": {
+            "version": "*"
+        }
+    },
+    "themes": {
+        "twentyseventeen": {
+            "version": "1.4"
+        }
+    }
+}
+```
+
+A sample of a ***build.yml*** file:
+```
+core:
+    download:
+        version: "~4.9.4"
+        locale: en_US
+plugins:
+    advanced-custom-fields
+        version: "*"
+    timber-library:
+        version: "^1.7.0"
+    wordpress-seo:
+        version: "*"
+themes:
+    twentyseventeen:
+        version: 1.4
+```
+
+Notice that you can use `~`, `*` and `^` operators when you don't want to refer a fixed version. 
+
+### Updating *build* and *.gitignore*
+When you add a new plugin to your WP site, you should run `$ wp build-generate` to update ***build*** and ***.gitignore*** files.
 
 For more options run `$ wp --help build-generate` and `$ wp --help build`
 
