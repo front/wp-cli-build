@@ -53,7 +53,7 @@ wp-content/themes/*
 # END WP-CLI BUILD BLOCK
 ```
 
-*Note: Only active plugins and themes will be listed in build.yml and .gitignore.*
+***Note:** Only active plugins and themes will be listed in **build** file and **gitignore**, unless you specify `--all` argument*.
 
 For more options, see `$ wp build-generate --help`
 
@@ -110,7 +110,7 @@ themes:
 Notice that you can use `~`, `*` and `^` operators when you don't want to refer a fixed version. 
 
 ### Updating *build* and *.gitignore*
-When you add a new plugin to your WP site, you should run `$ wp build-generate` to update ***build.yml*** and ***.gitignore*** files.
+When you add a new plugin to your WP site, you should run `$ wp build-generate` to update ***build*** and ***.gitignore*** files.
 
 For more options run `$ wp --help build-generate` and `$ wp --help build`
 
