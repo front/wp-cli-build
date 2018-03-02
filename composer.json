@@ -27,6 +27,5 @@
     "wp-cli/wp-cli": ">=0.23.0",
     "symfony/yaml": "3.4.4",
     "phar-io/version": "^1.0"
-  },
-  "version": "0.9.5"
+  }
 }
