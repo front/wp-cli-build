@@ -188,7 +188,7 @@ class Item {
 
 	private function version( $type = NULL, $name = NULL ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
-			$result = Utils::launch_self( 'plugin', [ 'get', $name ], [ 'field' => 'version' ], FALSE, TRUE, [], FALSE, FALSE );
+			$result = Utils::launch_self( $type, [ 'get', $name ], [ 'field' => 'version' ], FALSE, TRUE, [], FALSE, FALSE );
 			if ( ! empty( $result->stdout ) ) {
 				return trim( $result->stdout );
 			}
@@ -199,9 +199,13 @@ class Item {
 
 	private function status( $type = NULL, $name = NULL ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
-			$result = Utils::launch_self( 'plugin', [ 'get', $name ], [ 'field' => 'status' ], FALSE, TRUE, [], FALSE, FALSE );
-			if ( ! empty( $result->stdout ) ) {
-				return trim( strtolower( $result->stdout ) );
+			$result = Utils::launch_self( $type, [ 'status', $name ], [], FALSE, TRUE, [], FALSE, FALSE );
+			$result = trim( strtolower( $result->stdout ) );
+			if ( strpos( $result, 'status: active' ) ) {
+				return 'active';
+			}
+			if ( strpos( $result, 'status: inactive' ) ) {
+				return 'inactive';
 			}
 		}
 
