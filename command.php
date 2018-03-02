@@ -18,9 +18,9 @@ require_once dirname( __FILE__ ) . '/src/Helper/Utils.php';
 require_once dirname( __FILE__ ) . '/src/Helper/WP_API.php';
 
 WP_CLI::add_command( 'build', Build_Command::class, array(
-	'shortdesc' => 'Parses yaml build file and process core, plugins and themes.'
+	'shortdesc' => 'Parse the build file and download, install or update the core, plugins or themes on it.'
 ) );
 
 WP_CLI::add_command( 'build-generate', Build_Generate_Command::class, array(
-	'shortdesc' => 'Generates a build file according to current installation.'
+	'shortdesc' => 'Generates a build file according to current WordPress installation.'
 ) );
