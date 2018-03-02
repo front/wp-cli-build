@@ -92,16 +92,15 @@ class Utils {
 	}
 
 	public static function launch_self( $command, $args = [], $assoc_args = [], $exit_on_error = TRUE, $return_detailed = FALSE, $runtime_args = [], $exit_on_error_print = FALSE, $print = TRUE ) {
-
+		// Work around to add 'cache dir' as env var, to avoid permission errors.
+		$full_command = self::get_launch_self_workaround_command( $command, $args, $assoc_args, $runtime_args );
 		// Run command.
-		$result = WP_CLI::launch_self( $command, $args, $assoc_args, $exit_on_error, $return_detailed, $runtime_args );
-
+		$result = WP_CLI::launch( $full_command, $exit_on_error, $return_detailed );
 		// Standard output.
 		if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) && ( $print ) ) {
 			$stdout = str_replace( [ 'Success:', 'Error:', 'Warning:' ], [ '%GSuccess:%n', '%RError:%n', '%YWarning:%n' ], $result->stdout );
 			WP_CLI::line( '    ' . WP_CLI::colorize( $stdout ) );
 		}
-
 		// Output error.
 		if ( ( ! empty( $result->stderr ) ) && ( $print ) ) {
 			$stderr = str_replace( [ 'Error:', 'Warning:' ], [ '%RError:%n', '%YWarning:%n' ], $result->stderr );
@@ -112,6 +111,35 @@ class Utils {
 		}
 
 		return $result;
+	}
+
+	private static function get_launch_self_workaround_command( $command = NULL, $args = [], $assoc_args = [], $runtime_args = [] ) {
+		$reused_runtime_args = array(
+			'path',
+			'url',
+			'user',
+			'allow-root',
+		);
+		foreach ( $reused_runtime_args as $key ) {
+			if ( isset( $runtime_args[ $key ] ) ) {
+				$assoc_args[ $key ] = $runtime_args[ $key ];
+			} elseif ( $value = WP_CLI::get_runner()->config[ $key ] ) {
+				$assoc_args[ $key ] = $value;
+			}
+		}
+		$php_bin     = escapeshellarg( \WP_CLI\Utils\get_php_binary() );
+		$script_path = $GLOBALS['argv'][0];
+		if ( getenv( 'WP_CLI_CONFIG_PATH' ) ) {
+			$config_path = getenv( 'WP_CLI_CONFIG_PATH' );
+		} else {
+			$config_path = \WP_CLI\Utils\get_home_dir() . '/.wp-cli/config.yml';
+		}
+		$config_path = escapeshellarg( $config_path );
+		$args        = implode( ' ', array_map( 'escapeshellarg', $args ) );
+		$assoc_args  = \WP_CLI\Utils\assoc_args_to_str( $assoc_args );
+		$cache_dir   = getenv( 'WP_CLI_CACHE_DIR' ) ? getenv( 'WP_CLI_CACHE_DIR' ) : escapeshellarg( \WP_CLI\Utils\get_home_dir() . '/.wp-cli/cache' );
+
+		return "WP_CLI_CACHE_DIR={$cache_dir} WP_CLI_CONFIG_PATH={$config_path} {$php_bin} {$script_path} {$command} {$args} {$assoc_args}";
 	}
 
 	public static function item_download( $type = NULL, $slug = NULL, $version = NULL ) {
@@ -299,13 +327,13 @@ class Utils {
 	}
 
 	public static function determine_version( $item_version, $wporg_latest, $wporg_versions ) {
+		// Return latest version if '*'.
+		if ( $item_version == '*' ) {
+			return $wporg_latest;
+		}
 		// Determine the item version if we have '^', '~' or '*'.
-		if ( Utils::strposa( $item_version, [ '~', '^', '*' ] ) !== FALSE ) {
-			// Return latest version if '*'.
-			if ( strpos( $item_version, '*' ) ) {
-				return $wporg_latest;
-			}
-			// Figure out version if '^' or '~' operators are used.
+		if ( Utils::strposa( $item_version, [ '~', '^', '.*' ] ) !== FALSE ) {
+			// Figure out the version if '^', '~' and '.*' are used.
 			if ( ! empty( $wporg_versions ) ) {
 				$parser           = new VersionConstraintParser();
 				$caret_constraint = $parser->parse( $item_version );
@@ -319,7 +347,7 @@ class Utils {
 						$item_version = $version;
 					}
 				}
-				if ( Utils::strposa( $item_version, [ '~', '^', '*' ] ) !== FALSE ) {
+				if ( Utils::strposa( $item_version, [ '~', '^', '.*' ] ) !== FALSE ) {
 					return $wporg_latest;
 				}
 

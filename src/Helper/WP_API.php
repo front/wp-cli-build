@@ -16,7 +16,7 @@ class WP_API {
 		return str_replace( [ '~', '^', '*' ], '', $config_version );
 	}
 
-	public static function plugin_info( $slug = NULL, $version = NULL, $download_link = TRUE ) {
+	public static function plugin_info( $slug = NULL, $config_version = NULL ) {
 		if ( ! empty( $slug ) ) {
 			$response = Requests::post(
 				'http://api.wordpress.org/plugins/info/1.0/' . $slug . '.json',
@@ -26,15 +26,11 @@ class WP_API {
 			if ( ! empty( $response->body ) ) {
 				$plugin = json_decode( $response->body );
 				// Determine the version to be used.
+				$resolved_version = $plugin->version;
 				if ( ! empty( $plugin->versions ) ) {
-					$version = Utils::determine_version( $version, $plugin->version, $plugin->versions );
+					$resolved_version = Utils::determine_version( $config_version, $plugin->version, $plugin->versions );
 				}
-				if ( ( ( ! empty( $version ) ) && ( ! empty( $plugin->version ) ) && ( $plugin->version != $version ) )
-				     || ( $download_link ) ) {
-					if ( ! empty( $plugin->download_link ) ) {
-						$plugin = self::_get_item_download_link( $plugin, $version );
-					}
-				}
+				$plugin = self::_get_item_download_link( $plugin, $resolved_version );
 
 				return $plugin;
 			}
@@ -44,7 +40,7 @@ class WP_API {
 		return NULL;
 	}
 
-	public static function theme_info( $slug = NULL, $version = NULL, $download_link = TRUE ) {
+	public static function theme_info( $slug = NULL, $config_version = NULL ) {
 		if ( ! empty( $slug ) ) {
 			$response = Requests::post(
 				'http://api.wordpress.org/themes/info/1.1/',
@@ -54,14 +50,11 @@ class WP_API {
 			if ( ! empty( $response->body ) ) {
 				$theme = json_decode( $response->body );
 				// Determine the version to be used.
+				$resolved_version = $theme->version;
 				if ( ! empty( $theme->versions ) ) {
-					$version = Utils::determine_version( $version, $theme->version, $theme->versions );
+					$resolved_version = Utils::determine_version( $config_version, $theme->version, $theme->versions );
 				}
-				if ( ( ! empty( $version ) ) && ( ! empty( $theme->version ) ) && ( $theme->version != $version ) ) {
-					if ( ! empty( $theme->download_link ) ) {
-						$theme = self::_get_item_download_link( $theme, $version );
-					}
-				}
+				$theme = self::_get_item_download_link( $theme, $resolved_version );
 
 				return $theme;
 			}
@@ -72,28 +65,25 @@ class WP_API {
 	}
 
 	// Changes item download link with the specified version.
-	private static function _get_item_download_link( $response, $version ) {
+	private static function _get_item_download_link( $item, $version ) {
+		if ( ! empty( $item->download_link ) ) {
+			// WordPress.org forces https, but still sometimes returns http
+			// See https://twitter.com/nacin/status/512362694205140992
+			$item->download_link = str_replace( 'http://', 'https://', $item->download_link );
 
-		// WordPress.org forces https, but still sometimes returns http
-		// See https://twitter.com/nacin/status/512362694205140992
-		$response->download_link = str_replace( 'http://', 'https://', $response->download_link );
+			list( $link ) = explode( $item->slug, $item->download_link );
 
-		list( $link ) = explode( $response->slug, $response->download_link );
-
-		if ( $version == 'dev' ) {
-			$response->download_link = $link . $response->slug . '.zip';
-			$response->version       = 'Development Version';
-		} else {
-			// Sets the latest version if '*' is specified
-			if ( $version == '*' || $version == 'latest' ) {
-				$version = $response->version;
+			if ( $version == 'dev' ) {
+				$item->download_link = $link . $item->slug . '.zip';
+				$item->version       = 'Development Version';
+			} else {
+				// Build the download link
+				$item->download_link = $link . $item->slug . '.' . $version . '.zip';
+				$item->version       = $version;
 			}
-			// Build the download link
-			$response->download_link = $link . $response->slug . '.' . $version . '.zip';
-			$response->version       = $version;
 		}
 
-		return $response;
+		return $item;
 
 	}
 
