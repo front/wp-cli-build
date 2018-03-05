@@ -335,12 +335,15 @@ class Utils {
 		if ( Utils::strposa( $item_version, [ '~', '^', '.*' ] ) !== FALSE ) {
 			// Figure out the version if '^', '~' and '.*' are used.
 			if ( ! empty( $wporg_versions ) ) {
-				$parser           = new VersionConstraintParser();
-				$caret_constraint = $parser->parse( $item_version );
+				$parser                          = new VersionConstraintParser();
+				$caret_constraint                = $parser->parse( $item_version );
+				$wporg_versions->{$wporg_latest} = 'latest';
 				foreach ( $wporg_versions as $version => $url ) {
 					$complies = FALSE;
 					try {
-						$complies = $caret_constraint->complies( new Version( $version ) );
+						if ( version_compare( $item_version, $version, '<' ) ) {
+							$complies = $caret_constraint->complies( new Version( $version ) );
+						}
 					} catch ( \Exception $e ) {
 					}
 					if ( $complies ) {
