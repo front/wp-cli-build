@@ -18,6 +18,8 @@ Install **WP-CLI Build** from our git repo:
 $ wp package install front/wp-cli-build
 ```
 
+**Note:** If you don't have enough memory the package intaller will fail silently. To see if installation was successful, run `$ wp package list`. If empty, locate your php.ini and increase the memory_limit.
+
 ## Quick Start
 You need WP installed to get started, so if you don't already have an existing site: `wp core download and install`.
 
