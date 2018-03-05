@@ -26,13 +26,15 @@ class WP_API {
 			if ( ! empty( $response->body ) ) {
 				$plugin = json_decode( $response->body );
 				// Determine the version to be used.
-				$resolved_version = $plugin->version;
-				if ( ! empty( $plugin->versions ) ) {
-					$resolved_version = Utils::determine_version( $config_version, $plugin->version, $plugin->versions );
-				}
-				$plugin = self::_get_item_download_link( $plugin, $resolved_version );
+				if ( ! empty( $plugin->version ) ) {
+					$resolved_version = $plugin->version;
+					if ( ! empty( $plugin->versions ) ) {
+						$resolved_version = Utils::determine_version( $config_version, $plugin->version, $plugin->versions );
+					}
+					$plugin = self::_get_item_download_link( $plugin, $resolved_version );
 
-				return $plugin;
+					return $plugin;
+				}
 			}
 
 		}
@@ -50,13 +52,15 @@ class WP_API {
 			if ( ! empty( $response->body ) ) {
 				$theme = json_decode( $response->body );
 				// Determine the version to be used.
-				$resolved_version = $theme->version;
-				if ( ! empty( $theme->versions ) ) {
-					$resolved_version = Utils::determine_version( $config_version, $theme->version, $theme->versions );
-				}
-				$theme = self::_get_item_download_link( $theme, $resolved_version );
+				if ( ! empty( $theme->version ) ) {
+					$resolved_version = $theme->version;
+					if ( ! empty( $theme->versions ) ) {
+						$resolved_version = Utils::determine_version( $config_version, $theme->version, $theme->versions );
+					}
+					$theme = self::_get_item_download_link( $theme, $resolved_version );
 
-				return $theme;
+					return $theme;
+				}
 			}
 
 		}
