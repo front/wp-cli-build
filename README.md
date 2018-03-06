@@ -4,8 +4,7 @@
 ```sh
 $ wp build
 ```
-[A Git Friendly Way to Handle WordPress Updates – Slides from  WordCamp Oslo 2018](https://www.slideshare.net/frontkomnorway/a-git-friendly-way-to-handle-wordpress-updates-wordcamp-oslo-2018-89758006)
-<iframe src="//www.slideshare.net/slideshow/embed_code/key/1n9isZzIAfXO1h" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/frontkomnorway/a-git-friendly-way-to-handle-wordpress-updates-wordcamp-oslo-2018-89758006" title="A Git Friendly Way to Handle WordPress Updates – WordCamp Oslo 2018" target="_blank">A Git Friendly Way to Handle WordPress Updates – WordCamp Oslo 2018</a> </strong> from <strong><a href="https://www.slideshare.net/frontkomnorway" target="_blank">Frontkom</a></strong> </div>
+For more background, check out [A Git Friendly Way to Handle WordPress Updates – Slides from  WordCamp Oslo 2018](https://www.slideshare.net/frontkomnorway/a-git-friendly-way-to-handle-wordpress-updates-wordcamp-oslo-2018-89758006)
 
 ## Getting Started
 ### Prerequistes
