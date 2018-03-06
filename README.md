@@ -1,4 +1,4 @@
-![WP-CLI Build](https://i.imgur.com/clbxJqH.png)
+![WP-CLI Build](https://wputvikling.no/wp-cli-build.png)
 
 **WP-CLI Build** helps you to start your WP site in an organized way and simplifies maintenance: you don't need to version code that you don't maintain yourself like WP core, themes or 3rd party plugins. This makes it easy to have [auto updates](https://github.com/front/wp-cli-build/wiki/Auto-update-your-website), without messing up your Git setup. **WP-CLI Build** is also useful for [rebuilding your site after a hack](https://github.com/front/wp-cli-build/wiki/Rebuild-from-an-attack). 
 ```sh
