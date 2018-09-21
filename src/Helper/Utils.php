@@ -153,7 +153,9 @@ class Utils {
 					if ( $download === TRUE ) {
 						$file_path = Utils::wp_path( 'wp-content/' . $filename );
 						if ( file_exists( $file_path ) ) {
-							return self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) );
+							if (!self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) )) {
+								return "failed to unzip $type, deleting $filename...";
+							}
 						}
 					}
 
@@ -207,8 +209,10 @@ class Utils {
 				try {
 					$archive->extract( $to );
 				} catch ( InvalidArgumentException $e ) {
+					@unlink( $file );
 					return FALSE;
 				} catch ( RuntimeException $e ) {
+					@unlink( $file );
 					return FALSE;
 				}
 

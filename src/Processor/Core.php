@@ -8,10 +8,13 @@ use WP_CLI_Build\Helper\WP_API;
 class Core {
 
 	private $build;
+	private $assoc_args;
 
 	public function __construct( $assoc_args = NULL ) {
 		// Build file.
-		$this->build = new Build_Parser( Utils::get_build_filename( $assoc_args ) );
+		$this->build = new Build_Parser( Utils::get_build_filename( $assoc_args ), $assoc_args );
+		// Set command arguments.
+		$this->assoc_args = $assoc_args;
 	}
 
 	public function process() {
@@ -100,72 +103,62 @@ class Core {
 	// Configure WordPress if 'wp-config.php' is not found.
 	private function config_wordpress() {
 		// Check if wp-config.php exists.
-		if ( ! Utils::wp_config_exists() ) {
+		if ( ( ! Utils::wp_config_exists() ) || ( ! empty( $this->assoc_args['force'] ) ) ) {
 			// Version check.
 			$version_check = Utils::wp_version();
 			// Config
 			$config = $this->build->get( 'core', 'config' );
-			if ( ( $version_check !== FALSE ) && ( ! empty( $config ) ) ) {
-
-				// Only proceed with configuration if we have at least db-name and db-user.
-				if ( ! empty( $config['dbname'] ) ) {
-
-					// Status.
-					Utils::line( '- Configuring WordPress...' );
-
-					// Database name.
-					$config_args['dbname'] = $config['dbname'];
-
-					// Check if database username is set, if not, ask for it.
-					if ( empty( $config['dbuser'] ) ) {
-						$config['dbuser'] = NULL;
-						do {
-							$config['dbuser'] = Utils::prompt( WP_CLI::colorize( "    Enter the %Gusername%n for the database %Y{$config['dbname']}%n: " ) );
-						} while ( $config['dbuser'] == NULL );
-					}
-					$config_args['dbuser'] = $config['dbuser'];
-
-					// Check if database password is set, if not, ask for it.
-					if ( empty( $config['dbpass'] ) ) {
-						$config['dbpass'] = NULL;
-						do {
-							$config['dbpass'] = Utils::prompt( WP_CLI::colorize( "    Enter the database %Rpassword%n for the username %G{$config['dbuser']}%n: " ) );
-						} while ( $config['dbpass'] == NULL );
-					}
-					$config_args['dbpass'] = $config['dbpass'];
-
-					// Database host.
-					if ( ! empty( $config['dbhost'] ) ) {
-						$config_args['dbhost'] = $config['dbhost'];
-					}
-
-					// Database prefix.
-					if ( ! empty( $config['dbprefix'] ) ) {
-						$config_args['dbprefix'] = $config['dbprefix'];
-					}
-
-					// Database charset.
-					if ( ! empty( $config['dbcharset'] ) ) {
-						$config_args['dbcharset'] = $config['dbcharset'];
-					}
-
-					// Database collate.
-					if ( ! empty( $config['dbcollate'] ) ) {
-						$config_args['dbcollate'] = $config['dbcollate'];
-					}
-
-					// Database locale.
-					if ( ! empty( $config['locale'] ) ) {
-						$config_args['locale'] = $config['locale'];
-					}
-
-					// Config WordPress.
-					$result = Utils::launch_self( 'core', [ 'config' ], $config_args, FALSE, TRUE, [], TRUE );
-
-					// Print result.
-					return Utils::result( $result );
-
+			// Set config from assoc args (override).
+			if ( ! empty( $this->assoc_args ) ) {
+				// Set database details.
+				if ( ! empty( $this->assoc_args['dbname'] ) ) {
+					$config['dbname'] = $this->assoc_args['dbname'];
 				}
+				if ( ! empty( $this->assoc_args['dbuser'] ) ) {
+					$config['dbuser'] = $this->assoc_args['dbuser'];
+				}
+				if ( ! empty( $this->assoc_args['dbpass'] ) ) {
+					$config['dbpass'] = $this->assoc_args['dbpass'];
+				}
+			}
+			// Only proceed with configuration if we have the database name, user and password.
+			if ( ( $version_check !== FALSE ) && ( ! empty( $config['dbname'] ) ) && ( ! empty( $config['dbuser'] ) ) && ( ! empty( $config['dbpass'] ) ) ) {
+				// Status.
+				Utils::line( "- Generating '%Gwp-config.php%n'" );
+				// Override more config parameters from command line.
+				if ( ! empty( $this->assoc_args['dbhost'] ) ) {
+					$config['dbhost'] = $this->assoc_args['dbhost'];
+				}
+				if ( ! empty( $this->assoc_args['dbprefix'] ) ) {
+					$config['dbprefix'] = $this->assoc_args['dbprefix'];
+				}
+				if ( ! empty( $this->assoc_args['dbcharset'] ) ) {
+					$config['dbcharset'] = $this->assoc_args['dbcharset'];
+				}
+				if ( ! empty( $this->assoc_args['dbcollate'] ) ) {
+					$config['dbcollate'] = $this->assoc_args['dbcollate'];
+				}
+				if ( ! empty( $this->assoc_args['locale'] ) ) {
+					$config['locale'] = $this->assoc_args['locale'];
+				}
+				if ( ! empty( $this->assoc_args['skip-salts'] ) ) {
+					$config['skip-salts'] = $this->assoc_args['skip-salts'];
+				}
+				if ( ! empty( $this->assoc_args['skip-check'] ) ) {
+					$config['skip-check'] = $this->assoc_args['skip-check'];
+				}
+				if ( ! empty( $this->assoc_args['force'] ) ) {
+					$config['force'] = $this->assoc_args['force'];
+				}
+				// Set global parameter: path.
+				if ( ! empty( WP_CLI::get_runner()->config['path'] ) ) {
+					$config['path'] = WP_CLI::get_runner()->config['path'];
+				}
+				// Config WordPress.
+				$result = Utils::launch_self( 'config', [ 'create' ], $config, FALSE, TRUE, [], FALSE, FALSE );
+
+				// Print result.
+				return Utils::result( $result );
 			}
 		}
 

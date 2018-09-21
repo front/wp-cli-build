@@ -27,6 +27,39 @@ class Build_Command extends \WP_CLI_Command {
 	 * [--ignore-themes]
 	 * : Don't process themes
 	 *
+	 * [--dbname]
+	 * : Database name for wp-config.php (if WP is not installed)
+	 *
+	 * [--dbuser]
+	 * : Database user for wp-config.php (if WP is not installed)
+	 *
+	 * [--dbpass]
+	 * : Database pass for wp-config.php (if WP is not installed)
+	 *
+	 * [--dbhost]
+	 * : Database host for wp-config.php (if WP is not installed)
+	 *
+	 * [--dbprefix]
+	 * : Database prefix for wp-config.php (if WP is not installed)
+	 *
+	 * [--dbcharset]
+	 * : Database charset for wp-config.php (if WP is not installed)
+	 *
+	 * [--dbcollate]
+	 * : Database collate for wp-config.php (if WP is not installed)
+	 *
+	 * [--locale]
+	 * : Locale for wp-config.php (if WP is not installed)
+	 *
+	 * [--skip-salts]
+	 * : If set, keys and salts won't be generated for wp-config.php (if WP is not installed)
+	 *
+	 * [--skip-check]
+	 * : If set, the database connection is not checked.
+	 *
+	 * [--force]
+	 * : Overwrites existing wp-config.php
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp build

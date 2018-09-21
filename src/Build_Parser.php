@@ -10,7 +10,7 @@ class Build_Parser {
 	private $format = 'json';
 	private $build = [];
 
-	public function __construct( $filename ) {
+	public function __construct( $filename, $assoc_args = NULL ) {
 		// Set Build file.
 		$this->filename = empty( $filename ) ? 'build.json' : $filename;
 		// Set format.
@@ -22,6 +22,10 @@ class Build_Parser {
 	private function parse() {
 		// Full Build file path.
 		$file_path = ( Utils::is_absolute_path( $this->filename ) ) ? $this->filename : realpath( '.' ) . '/' . $this->filename;
+		// Set specified path with --path argument.
+		if ( ! empty( WP_CLI::get_runner()->config['path'] ) ) {
+			$file_path = WP_CLI::get_runner()->config['path'] . '/' . $this->filename;
+		}
 		// Check if the file exists.
 		if ( ! file_exists( $file_path ) ) {
 			return NULL;

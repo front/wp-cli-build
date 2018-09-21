@@ -131,9 +131,6 @@ class Item {
 			$install_args['force'] = TRUE;
 		}
 
-		// Activate it after installing.
-		$install_args['activate'] = TRUE;
-
 		// Active it on network after installing.
 		if ( ( ! empty( $item_info['activate-network'] ) ) && ( $item_info['activate-network'] ) ) {
 			$install_args['activate-network'] = TRUE;
@@ -144,6 +141,11 @@ class Item {
 
 		// Install item.
 		$result = Utils::launch_self( $type, [ 'install', $install_point ], $install_args, FALSE, TRUE, [], FALSE, FALSE );
+
+		// Silently activate item.
+		if ( ! $this->is_active( $type, $item ) ) {
+			Utils::launch_self( $type, [ 'activate', $item ], [], FALSE, TRUE, [], FALSE, FALSE );
+		}
 
 		// Print result.
 		return Utils::result( $result );
@@ -206,6 +208,17 @@ class Item {
 			}
 			if ( strpos( $result, 'status: inactive' ) ) {
 				return 'inactive';
+			}
+		}
+
+		return FALSE;
+	}
+
+	private function is_active( $type = NULL, $name = NULL ) {
+		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
+			$result = Utils::launch_self( $type, [ 'is-active', $name ], [], FALSE, TRUE, [], FALSE, FALSE );
+			if ( empty( $result->return_code ) ) {
+				return TRUE;
 			}
 		}
 
