@@ -82,6 +82,8 @@ class Core {
 				if ( ! empty( $config['locale'] ) ) {
 					$download_args['locale'] = $config['locale'];
 				}
+				// Download WP without the default themes and plugins
+				$download_args['skip-content'] = isset( $config['skip-content'] ) ? $config['skip-content'] : TRUE;
 				// Force download.
 				if ( ( ! empty( $config['force'] ) ) && ( $config['force'] === TRUE ) ) {
 					$download_args['force'] = TRUE;
