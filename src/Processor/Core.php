@@ -84,6 +84,8 @@ class Core {
 				}
 				// Download WP without the default themes and plugins
 				$download_args['skip-content'] = isset( $config['skip-content'] ) ? $config['skip-content'] : TRUE;
+				// Whether to exit on error or not
+				$exit_on_error = isset( $config['exit-on-error'] ) ? $config['exit-on-error'] : FALSE;
 				// Force download.
 				if ( ( ! empty( $config['force'] ) ) && ( $config['force'] === TRUE ) ) {
 					$download_args['force'] = TRUE;
