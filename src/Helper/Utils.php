@@ -114,12 +114,12 @@ class Utils {
 	}
 
 	private static function get_launch_self_workaround_command( $command = NULL, $args = [], $assoc_args = [], $runtime_args = [] ) {
-		$reused_runtime_args = array(
+		$reused_runtime_args = [
 			'path',
 			'url',
 			'user',
 			'allow-root',
-		);
+		];
 		foreach ( $reused_runtime_args as $key ) {
 			if ( isset( $runtime_args[ $key ] ) ) {
 				$assoc_args[ $key ] = $runtime_args[ $key ];
@@ -146,32 +146,60 @@ class Utils {
 		if ( ( ! empty( $slug ) ) && ( $type == 'plugin' || $type == 'theme' ) && ( ! empty( $version ) ) ) {
 			$info_fn = $type . '_info';
 			$info    = WP_API::$info_fn( $slug, $version );
+			if ( ! empty( $info->error ) ) {
+				return 'not available in wordpress.org';
+			}
+			// Status message.
+			$status             = '';
+			// Uses custom 'version_link' to download the item.
+			if ( ! empty( $info->version_link ) ) {
+				$failed_version_download = FALSE;
+				$filename = basename( $info->version_link );
+				if ( ! empty( $filename ) ) {
+					$download = Utils::download_url( $info->version_link );
+					if ( $download !== TRUE ) {
+						$failed_version_download = TRUE;
+						$status .= "failed to download specified version of the plugin, trying latest version...%n\n\n\t%YFailed link:%n {$info->version_link}\n\t%BHTTP code:%n {$download}";
+					}
+					if ( empty( $status ) && ( ! Utils::item_unzip( $type, $filename ) ) ) {
+						$status .= "failed to unzip $type, deleting $filename...";
+					}
+				}
+			}
+			// Uses API 'download_link' to download the item.
 			if ( ! empty( $info->download_link ) ) {
 				$filename = basename( $info->download_link );
 				if ( ! empty( $filename ) ) {
 					$download = Utils::download_url( $info->download_link );
-					if ( $download === TRUE ) {
-						$file_path = Utils::wp_path( 'wp-content/' . $filename );
-						if ( file_exists( $file_path ) ) {
-							if (!self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) )) {
-								return "failed to unzip $type, deleting $filename...";
-							}
+					if ( $download !== TRUE ) {
+						if ( ! empty( $status ) ) {
+							$status .= "";
+						}
+						$status .= "failed to download plugin, details below...%n\n\n\t%YLink:%n {$info->download_link}\n\t%BHTTP status code:%n {$download}\n";
+					}
+					if ( empty( $status ) || ( $download === TRUE ) ) {
+						if ( ! Utils::item_unzip( $type, $filename ) ) {
+							$status .= "failed to unzip $type, deleting $filename...";
 						}
 					}
-
-					return $download;
+					if (( ! empty( $status ) ) && ($failed_version_download)) {
+						$status .= "\n\n\t%GSuccess!%n\n\t%YLink:%n {$info->download_link}\n\t%BVersion:%n $info->original_version\n%n";
+					}
+				}
+				else {
+					return "failed to determine filename from the plugin download link: {$info->download_link}";
 				}
 			} else {
-				return 'not available in wordpress.org';
+				return 'no download link provided by the WordPress API, failed.';
 			}
 
+			return empty($status) ? TRUE : $status;
 		}
 
 		return NULL;
 	}
 
 	public static function download_url( $url = NULL ) {
-
 		// If we have an URL proceed.
 		if ( ! empty( $url ) ) {
 			$filename = basename( $url );
@@ -184,6 +212,8 @@ class Utils {
 					if ( $download->status_code == 200 ) {
 						return TRUE;
 					}
+
+					return $download->status_code;
 				}
 
 				return $create_dir;
@@ -193,6 +223,17 @@ class Utils {
 		// Delete the file if we don't get a 200 code.
 		if ( ( ! empty( $save_path ) ) && ( file_exists( $save_path ) ) ) {
 			@unlink( $save_path );
+		}
+
+		return FALSE;
+	}
+
+	public static function item_unzip( $type, $filename ) {
+		$file_path = self::wp_path( 'wp-content/' . $filename );
+		if ( file_exists( $file_path ) ) {
+			if ( self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) ) ) {
+				return TRUE;
+			}
 		}
 
 		return FALSE;
@@ -210,9 +251,11 @@ class Utils {
 					$archive->extract( $to );
 				} catch ( InvalidArgumentException $e ) {
 					@unlink( $file );
+
 					return FALSE;
 				} catch ( RuntimeException $e ) {
 					@unlink( $file );
+
 					return FALSE;
 				}
 
@@ -293,8 +336,8 @@ class Utils {
 		return empty( $assoc_args['file'] ) ? 'build.json' : $assoc_args['file'];
 	}
 
-	public static function strposa( $haystack, $needles = array(), $offset = 0 ) {
-		$chr = array();
+	public static function strposa( $haystack, $needles = [], $offset = 0 ) {
+		$chr = [];
 		foreach ( $needles as $needle ) {
 			$res = strpos( $haystack, $needle, $offset );
 			if ( $res !== FALSE ) {

@@ -18,11 +18,7 @@ class WP_API {
 
 	public static function plugin_info( $slug = NULL, $config_version = NULL ) {
 		if ( ! empty( $slug ) ) {
-			$response = Requests::post(
-				'http://api.wordpress.org/plugins/info/1.0/' . $slug . '.json',
-				[],
-				[ 'action' => 'plugin_information' ]
-			);
+			$response = Requests::get( "http://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request[slug]={$slug}" );
 			if ( ! empty( $response->body ) ) {
 				$plugin = json_decode( $response->body );
 				// Determine the version to be used.
@@ -74,16 +70,23 @@ class WP_API {
 			// WordPress.org forces https, but still sometimes returns http
 			// See https://twitter.com/nacin/status/512362694205140992
 			$item->download_link = str_replace( 'http://', 'https://', $item->download_link );
-
+			// Saves original API version.
+			$item->original_version = $item->version;
+			// If the version to download is the current item version, return download link as is.
+			if ( $item->version == $version ) {
+				return $item;
+			}
+			// Build download link.
 			list( $link ) = explode( $item->slug, $item->download_link );
-
+			// If 'dev' version, return download with slug only with no version attached.
 			if ( $version == 'dev' ) {
-				$item->download_link = $link . $item->slug . '.zip';
-				$item->version       = 'Development Version';
-			} else {
+				$item->version_link = $link . $item->slug . '.zip';
+				$item->version      = 'Development Version';
+			} // Build download link with version attached.
+			else {
 				// Build the download link
-				$item->download_link = $link . $item->slug . '.' . $version . '.zip';
-				$item->version       = $version;
+				$item->version_link = $link . $item->slug . '.' . $version . '.zip';
+				$item->version      = $version;
 			}
 		}
 
