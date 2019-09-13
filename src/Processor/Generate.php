@@ -138,7 +138,7 @@ class Generate {
 					// Check plugin information on wp official repository.
 					$api = plugins_api( 'plugin_information', [ 'slug' => $slug ] );
 					// Origin.
-					$plugin_origin = is_wp_error( $api ) ? 'custom' : 'wp.org';
+					$plugin_origin = ( is_wp_error( $api ) || ( empty( $api->download_link ) ) || ( ! empty( $api->external ) ) ) ? 'custom' : 'wp.org';
 					// Verbose output.
 					$plugin_origin_colorize = ( $plugin_origin == 'wp.org' ) ? "%Y$plugin_origin%n" : "%R$plugin_origin%n";
 					Utils::line( "%W  %n%G$slug%n%W (%n$plugin_origin_colorize%W):%n {$version}\n" );
