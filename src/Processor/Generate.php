@@ -173,11 +173,29 @@ class Generate {
 					$api = themes_api( 'theme_information', [ 'slug' => $slug ] );
 					// Origin.
 					$origin = is_wp_error( $api ) ? 'custom' : 'wp.org';
-					// Verbose output.
+					// Origin color.
 					$origin_colorize = ( $origin == 'wp.org' ) ? "%Y$origin%n" : "%R$origin%n";
-					Utils::line( "%W  %n%G$slug%n%W (%n$origin_colorize%W):%n {$version}\n" );
+					// Message.
+					$message = empty( $version ) ? "%W  %n%G$slug%n%W (%n$origin_colorize%W)\n" : "%W  %n%G$slug%n%W (%n$origin_colorize%W):%n {$version}\n";
+					Utils::line( $message );
 					// Add theme to the list.
 					$themes[ $origin ][ $slug ]['version'] = $version;
+					// Add main theme in case the theme we've added have '-child' in the name.
+					$is_child_theme = strpos( $slug, '-child' );
+					if ( $is_child_theme !== FALSE ) {
+						// Generate main theme name.
+						$main_theme = substr( $slug, 0, $is_child_theme );
+						// Check theme information on wp.org.
+						$api = themes_api( 'theme_information', [ 'slug' => $main_theme ] );
+						// Origin.
+						$origin = is_wp_error( $api ) ? 'custom' : 'wp.org';
+						// Origin color.
+						$origin_colorize = ( $origin == 'wp.org' ) ? "%Y$origin%n" : "%R$origin%n";
+						// Message.
+						Utils::line( "%W  %n%G$main_theme%n%W (%n$origin_colorize%W)\n" );
+						// Add theme to the themes list.
+						$themes[ $origin ][ $main_theme ] = NULL;
+					}
 				}
 			}
 		}
