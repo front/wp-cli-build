@@ -52,7 +52,7 @@ class Build_Generate_Command extends \WP_CLI_Command {
 		$generator->create_build_file();
 
 		// Attempt to gitignore.
-		if ( empty( $assoc_args['no-gitignore'] ) ) {
+		if ( empty( $assoc_args['skip-git'] ) ) {
 			$generator->create_gitignore();
 		}
 
