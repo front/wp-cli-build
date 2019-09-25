@@ -27,6 +27,9 @@ class Build_Command extends \WP_CLI_Command {
 	 * [--ignore-themes]
 	 * : Don't process themes
 	 *
+	 * [--yes]
+	 * : Skip confirmation of some questions
+	 *
 	 * [--dbname]
 	 * : Database name for wp-config.php (if WP is not installed)
 	 *
@@ -73,7 +76,7 @@ class Build_Command extends \WP_CLI_Command {
 		WP_CLI::line( WP_CLI::colorize( "%GParsing %W$build_filename%n%G, please wait...%n" ) );
 
 		// Clean mode check
-		if ( ! empty( $assoc_args['clean'] ) ) {
+		if ( ( ! empty( $assoc_args['clean'] ) ) && ( empty( $assoc_args['yes'] ) ) ) {
 			WP_CLI::confirm( WP_CLI::colorize( "\n%RItems will be deleted! => This will delete and re-download all plugins and themes listed in build file.\n%n%YAre you sure you want to continue?%n" ) );
 		}
 
