@@ -161,7 +161,9 @@ class Utils {
 						$failed_version_download = TRUE;
 						$status .= "failed to download specified version of the plugin, trying latest version...%n\n\n\t%YFailed link:%n {$info->version_link}\n\t%BHTTP code:%n {$download}";
 					}
-					if ( empty( $status ) && ( ! Utils::item_unzip( $type, $filename ) ) ) {
+					if ( empty( $status ) && ( Utils::item_unzip( $type, $filename ) ) ) {
+						return TRUE;
+					} else {
 						$status .= "failed to unzip $type, deleting $filename...";
 					}
 				}
