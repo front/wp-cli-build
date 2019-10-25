@@ -22,8 +22,8 @@ class Build_Parser {
 	private function parse() {
 		// Full Build file path.
 		$file_path = ( Utils::is_absolute_path( $this->filename ) ) ? $this->filename : realpath( '.' ) . '/' . $this->filename;
-		// Set specified path with --path argument.
-		if ( ! empty( WP_CLI::get_runner()->config['path'] ) ) {
+		// Set specified path with --path argument if no --file argument is set
+		if ( ! empty( WP_CLI::get_runner()->config['path'] ) && empty( $assoc_args['file'] ) ) {
 			$file_path = WP_CLI::get_runner()->config['path'] . '/' . $this->filename;
 		}
 		// Check if the file exists.
