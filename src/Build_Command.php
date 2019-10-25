@@ -66,7 +66,7 @@ class Build_Command extends \WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp build
-	 *     wp build --file=production.json --no-plugins
+	 *     wp build --file=production.json --ignore-plugins
 	 *
 	 * @when  before_wp_load
 	 */
