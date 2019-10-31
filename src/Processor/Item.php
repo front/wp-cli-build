@@ -11,7 +11,7 @@ class Item {
 
 	public function __construct( $assoc_args = NULL ) {
 		// Build file.
-		$this->build      = new Build_Parser( Utils::get_build_filename( $assoc_args ) );
+		$this->build      = new Build_Parser( Utils::get_build_filename( $assoc_args ), $assoc_args );
 		$this->filesystem = new Filesystem();
 		$this->clean      = empty( $assoc_args['clean'] ) ? FALSE : TRUE;
 	}

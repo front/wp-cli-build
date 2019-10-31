@@ -9,12 +9,16 @@ class Build_Parser {
 	private $filename = 'build.json';
 	private $format = 'json';
 	private $build = [];
+	private $assoc_args = NULL;
 
 	public function __construct( $filename, $assoc_args = NULL ) {
 		// Set Build file.
 		$this->filename = empty( $filename ) ? 'build.json' : $filename;
 		// Set format.
 		$this->format = ( strpos( $this->filename, 'yml' ) !== FALSE ) ? 'yml' : 'json';
+		// Set arguments.
+		$this->assoc_args = $assoc_args;
+
 		// Parse the Build file and Build sure it's valid.
 		$this->parse();
 	}
@@ -22,8 +26,8 @@ class Build_Parser {
 	private function parse() {
 		// Full Build file path.
 		$file_path = ( Utils::is_absolute_path( $this->filename ) ) ? $this->filename : realpath( '.' ) . '/' . $this->filename;
-		// Set specified path with --path argument.
-		if ( ! empty( WP_CLI::get_runner()->config['path'] ) ) {
+		// Set specified path with --path argument if no --file argument is set
+		if ( ! empty( WP_CLI::get_runner()->config['path'] ) && empty( $this->assoc_args['file'] ) ) {
 			$file_path = WP_CLI::get_runner()->config['path'] . '/' . $this->filename;
 		}
 		// Check if the file exists.

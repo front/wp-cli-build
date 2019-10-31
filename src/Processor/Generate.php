@@ -19,7 +19,7 @@ class Generate {
 		$this->assoc_args = $assoc_args;
 		// Existing build file (if any).
 		$this->build_filename = $build_filename;
-		$this->build_file     = new Build_Parser( Utils::get_build_filename( $assoc_args ) );
+		$this->build_file     = new Build_Parser( Utils::get_build_filename( $assoc_args ), $assoc_args );
 		// WP core, plugins and themes information.
 		// Verbose output
 		Utils::line( "%WCompiling information from the existing installation, please wait...\n\n" );
