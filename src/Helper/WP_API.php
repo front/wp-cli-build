@@ -4,7 +4,7 @@ use Requests;
 
 class WP_API {
 
-	public static function core_version_check( $config_version = NULL ) {
+	public static function core_version_check( $config_version = null ) {
 		$response = Requests::get( 'http://api.wordpress.org/core/version-check/1.7/' );
 		if ( ! empty( $response->body ) ) {
 			$core = json_decode( $response->body );

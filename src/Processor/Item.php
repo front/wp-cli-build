@@ -7,17 +7,18 @@ use WP_CLI_Build\Helper\WP_API;
 
 class Item {
 
-	private $build;
+	private Build_Parser $build;
 
-	public function __construct( $assoc_args = NULL ) {
+	public function __construct( $assoc_args = null ) {
 		// Build file.
 		$this->build      = new Build_Parser( Utils::get_build_filename( $assoc_args ) );
 		$this->filesystem = new Filesystem();
-		$this->clean      = empty( $assoc_args['clean'] ) ? FALSE : TRUE;
+		$this->clean      = !empty($assoc_args['clean']);
 	}
 
 	// Starts processing items.
-	public function run( $item_type = NULL ) {
+	public function run( $item_type = null ): bool
+    {
 		$result = FALSE;
 		if ( ( $item_type == 'plugin' ) || ( $item_type == 'theme' ) ) {
 			if ( ! empty( $this->build ) ) {
@@ -33,7 +34,8 @@ class Item {
 	}
 
 	// Process item (plugin or theme).
-	private function process( $type = NULL, $items = [], $defaults = [] ) {
+	private function process( $type = null, $items = [], $defaults = [] ): bool
+    {
 		$result = FALSE;
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $items ) ) ) {
 			// Check if WP is installed.
@@ -81,7 +83,8 @@ class Item {
 	}
 
 	// Download an item.
-	private function download( $type = NULL, $item = NULL, $item_info = NULL ) {
+	private function download( $type = null, $item = null, $item_info = null ): bool
+    {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $item ) ) && ( ! empty( $item_info ) ) ) {
 			// Check if the item folder already exists or not.
 			// If the folder exists and the version is the same as the build file, skip it.
@@ -100,10 +103,13 @@ class Item {
 				return TRUE;
 			}
 		}
+
+		return FALSE;
 	}
 
 	// Install and activate an item.
-	private function install( $type = NULL, $item = NULL, $item_info = NULL, $defaults = [] ) {
+	private function install( $type = null, $item = null, $item_info = null, $defaults = [] ): bool
+    {
 		// Processing text.
 		$process = "- Installing %G$item%n";
 
@@ -117,7 +123,7 @@ class Item {
 		$defaults_code = [ 'version' => 'latest', 'force' => FALSE, 'activate' => FALSE, 'activate-network' => FALSE, 'gitignore' => FALSE ];
 		$defaults      = array_merge( $defaults_code, $defaults );
 
-		// Merge item info with the defaults (ixtem info will override defaults).
+		// Merge item info with the defaults (item info will override defaults).
 		$item_info = array_merge( $defaults, $item_info );
 
 		// Item version.
@@ -126,7 +132,7 @@ class Item {
 			$install_args['version'] = $item_info['version'];
 		}
 
-		// Wether to force installation if the item is already installed.
+		// Whether to force installation if the item is already installed.
 		if ( ( ! empty( $item_info['force'] ) ) && ( $item_info['force'] ) ) {
 			$install_args['force'] = TRUE;
 		}
@@ -152,7 +158,8 @@ class Item {
 	}
 
 	// Activate an item.
-	private function activate( $type = NULL, $item = NULL, $item_info = NULL ) {
+	private function activate( $type = null, $item = null, $item_info = null ): bool
+    {
 		// Processing text.
 		$process = "- Activating %G$item%n (%Y{$item_info['version']}%n)";
 
@@ -167,7 +174,8 @@ class Item {
 	}
 
 	// Activate an item.
-	private function update( $type = NULL, $item = NULL, $item_info = NULL ) {
+	private function update( $type = null, $item = null, $item_info = null ): bool
+    {
 
 		// Current version.
 		$old_version = $this->version( $type, $item );
@@ -188,7 +196,8 @@ class Item {
 		return Utils::result( $result );
 	}
 
-	private function version( $type = NULL, $name = NULL ) {
+	private function version( $type = null, $name = null ): bool|string
+    {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
 			$result = Utils::launch_self( $type, [ 'get', $name ], [ 'field' => 'version' ], FALSE, TRUE, [], FALSE, FALSE );
 			if ( ! empty( $result->stdout ) ) {
@@ -199,7 +208,8 @@ class Item {
 		return FALSE;
 	}
 
-	private function status( $type = NULL, $name = NULL ) {
+	private function status( $type = null, $name = null ): bool|string
+    {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
 			$result = Utils::launch_self( $type, [ 'status', $name ], [], FALSE, TRUE, [], FALSE, FALSE );
 			$result = trim( strtolower( $result->stdout ) );
@@ -214,7 +224,8 @@ class Item {
 		return FALSE;
 	}
 
-	private function is_active( $type = NULL, $name = NULL ) {
+	private function is_active( $type = null, $name = null ): bool
+    {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $name ) ) ) {
 			$result = Utils::launch_self( $type, [ 'is-active', $name ], [], FALSE, TRUE, [], FALSE, FALSE );
 			if ( empty( $result->return_code ) ) {
@@ -225,7 +236,7 @@ class Item {
 		return FALSE;
 	}
 
-	private function get_item_info( $type = NULL, $slug = NULL, $version = '*', $field = NULL ) {
+	private function get_item_info( $type = null, $slug = null, $version = '*', $field = null ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $slug ) ) ) {
 			$info_fn = $type . '_info';
 			$info    = WP_API::$info_fn( $slug, $version, FALSE );
@@ -236,10 +247,10 @@ class Item {
 			return $info;
 		}
 
-		return NULL;
+		return null;
 	}
 
-	private function set_item_version( $type = NULL, $slug = NULL, $item_version = '*' ) {
+	private function set_item_version( $type = null, $slug = null, $item_version = '*' ) {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $slug ) ) ) {
 			$item_info = $this->get_item_info( $type, $slug, $item_version );
 			if ( ! empty( $item_info->version ) ) {
@@ -250,14 +261,15 @@ class Item {
 		return ( $item_version === '*' ) ? 'latest' : $item_version;
 	}
 
-	private function delete_item_folder( $type = NULL, $item = NULL ) {
+	private function delete_item_folder( $type = null, $item = null ): void
+    {
 		if ( ( ! empty( $type ) ) && ( ! empty( $item ) ) ) {
 			$folder = Utils::wp_path( 'wp-content/' . $type . 's/' . $item );
 
-			return $this->filesystem->remove( $folder );
+            $this->filesystem->remove($folder);
+            return;
 		}
 
-		return FALSE;
-	}
+    }
 
 }

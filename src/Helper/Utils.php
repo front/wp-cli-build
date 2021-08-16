@@ -12,7 +12,8 @@ use PharIo\Version\VersionConstraintParser;
 
 class Utils {
 
-	public static function wp_config_exists() {
+	public static function wp_config_exists(): bool
+    {
 		if ( ( file_exists( realpath( '.' ) . '/wp-config.php' ) ) || ( file_exists( ABSPATH . '/wp-config.php' ) ) ) {
 			return TRUE;
 		}
@@ -21,7 +22,8 @@ class Utils {
 	}
 
 	// Return WP version.
-	public static function wp_version() {
+	public static function wp_version(): bool|string
+    {
 		$result = self::launch_self( 'core', [ 'version' ], [], FALSE, TRUE, [], FALSE, FALSE );
 		if ( ! empty( $result->stdout ) ) {
 			return trim( $result->stdout );
@@ -31,7 +33,8 @@ class Utils {
 	}
 
 	// Check if WP is installed.
-	public static function wp_installed() {
+	public static function wp_installed(): bool
+    {
 		$result = self::launch_self( 'core', [ 'is-installed' ], [], FALSE, TRUE, [], FALSE, FALSE );
 		if ( ! empty( $result->return_code ) ) {
 			return FALSE;
@@ -40,7 +43,8 @@ class Utils {
 		return TRUE;
 	}
 
-	public static function wp_path( $path = NULL ) {
+	public static function wp_path( $path = null ): string
+    {
 		$wp_path = ABSPATH;
 		if ( ! empty( $path ) ) {
 			$wp_path = ( ( ! self::is_absolute_path( ABSPATH ) ) || ( $wp_path == '/' ) ) ? getcwd() . '/' . $path : $wp_path . '/' . $path;
@@ -50,11 +54,12 @@ class Utils {
 	}
 
 	public static function line( $text, $pseudo_tab = FALSE ) {
-		$spaces = ( $pseudo_tab ) ? '  ' : NULL;
+		$spaces = ( $pseudo_tab ) ? '  ' : null;
 		echo $spaces . WP_CLI::colorize( $text );
 	}
 
-	public static function prompt( $question ) {
+	public static function prompt( $question ): bool|string
+    {
 		if ( function_exists( 'readline' ) ) {
 			return readline( $question );
 		} else {
@@ -64,7 +69,8 @@ class Utils {
 		}
 	}
 
-	public static function is_absolute_path( $path ) {
+	public static function is_absolute_path( $path ): bool
+    {
 		if ( ! is_string( $path ) ) {
 			$mess = sprintf( 'String expected but was given %s', gettype( $path ) );
 			throw new \InvalidArgumentException( $mess );
@@ -113,7 +119,8 @@ class Utils {
 		return $result;
 	}
 
-	private static function get_launch_self_workaround_command( $command = NULL, $args = [], $assoc_args = [], $runtime_args = [] ) {
+	private static function get_launch_self_workaround_command( $command = null, $args = [], $assoc_args = [], $runtime_args = [] ): string
+    {
 		$reused_runtime_args = [
 			'path',
 			'url',
@@ -142,7 +149,8 @@ class Utils {
 		return "WP_CLI_CACHE_DIR={$cache_dir} WP_CLI_CONFIG_PATH={$config_path} {$php_bin} {$script_path} {$command} {$args} {$assoc_args}";
 	}
 
-	public static function item_download( $type = NULL, $slug = NULL, $version = NULL ) {
+	public static function item_download( $type = null, $slug = null, $version = null ): bool|string|null
+    {
 		if ( ( ! empty( $slug ) ) && ( $type == 'plugin' || $type == 'theme' ) && ( ! empty( $version ) ) ) {
 			$info_fn = $type . '_info';
 			$info    = WP_API::$info_fn( $slug, $version );
@@ -151,9 +159,9 @@ class Utils {
 			}
 			// Status message.
 			$status             = '';
-			// Uses custom 'version_link' to download the item.
-			if ( ! empty( $info->version_link ) ) {
-				$failed_version_download = FALSE;
+            $failed_version_download = FALSE;
+            // Uses custom 'version_link' to download the item.
+            if ( ! empty( $info->version_link ) ) {
 				$filename = basename( $info->version_link );
 				if ( ! empty( $filename ) ) {
 					$download = Utils::download_url( $info->version_link );
@@ -199,7 +207,8 @@ class Utils {
 		return NULL;
 	}
 
-	public static function download_url( $url = NULL ) {
+	public static function download_url( $url = null ): bool|int|string
+    {
 		// If we have an URL proceed.
 		if ( ! empty( $url ) ) {
 			$filename = basename( $url );
@@ -228,7 +237,8 @@ class Utils {
 		return FALSE;
 	}
 
-	public static function item_unzip( $type, $filename ) {
+	public static function item_unzip( $type, $filename ): bool
+    {
 		$file_path = self::wp_path( 'wp-content/' . $filename );
 		if ( file_exists( $file_path ) ) {
 			if ( self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) ) ) {
@@ -239,7 +249,8 @@ class Utils {
 		return FALSE;
 	}
 
-	public static function unzip( $file, $to, $delete = TRUE ) {
+	public static function unzip( $file, $to, $delete = TRUE ): bool
+    {
 		if ( ( ! empty( $file ) ) && ( ! empty( $to ) ) ) {
 
 			// Create the directory to extract to.
@@ -271,7 +282,8 @@ class Utils {
 		return FALSE;
 	}
 
-	public static function mkdir( $dir = NULL ) {
+	public static function mkdir( $dir = null ): bool|string
+    {
 		if ( ! empty( $dir ) ) {
 			if ( ! file_exists( $dir ) ) {
 				$fs = new Filesystem();
@@ -293,7 +305,8 @@ class Utils {
 	}
 
 	// Print success or error message.
-	public static function result( $result = NULL ) {
+	public static function result( $result = null ): bool
+    {
 		if ( ! empty( $result ) ) {
 			// Success.
 			if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
@@ -314,7 +327,7 @@ class Utils {
 
 	public static function convert_to_numeric( $version = NULL ) {
 		if ( ( ! empty( $version ) ) && ( is_numeric( $version ) ) ) {
-			return strpos( $version, '.' ) === FALSE ? (int) $version : (float) $version;
+			return !str_contains($version, '.') ? (int) $version : (float) $version;
 		}
 
 		return $version;

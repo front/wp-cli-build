@@ -7,14 +7,14 @@ use Symfony\Component\Yaml\Yaml;
 
 class Generate {
 
-	private $core;
-	private $plugins;
-	private $themes;
-	private $assoc_args;
-	private $build_file;
-	private $build_filename;
+	private array $core;
+	private array $plugins;
+	private array $themes;
+	private mixed $assoc_args;
+	private Build_Parser $build_file;
+	private mixed $build_filename;
 
-	public function __construct( $assoc_args = NULL, $build_filename = NULL ) {
+	public function __construct( $assoc_args = null, $build_filename = null ) {
 		// Cmd line arguments.
 		$this->assoc_args = $assoc_args;
 		// Existing build file (if any).
@@ -52,7 +52,7 @@ class Generate {
 		Utils::line( "%WGenerating %n%Y$this->build_filename%n%W with the items from %Ywp.org%n%W, please wait...%n" );
 
 		// YAML.
-		if ( ( ( ! empty( $this->assoc_args['format'] ) ) && ( $this->assoc_args['format'] == 'yml' ) ) || ( strpos( $this->build_filename, 'yml' ) !== FALSE ) ) {
+		if ( ( ( ! empty( $this->assoc_args['format'] ) ) && ( $this->assoc_args['format'] == 'yml' ) ) || (str_contains($this->build_filename, 'yml')) ) {
 			$content = Yaml::dump( $build, 10 );
 		}
 
@@ -74,7 +74,8 @@ class Generate {
 
 	}
 
-	public function create_gitignore() {
+	public function create_gitignore(): bool
+    {
 		$custom_items = [];
 		if ( ! empty( $this->plugins['custom'] ) ) {
 			$custom_items['plugins'] = $this->plugins['custom'];
@@ -102,7 +103,8 @@ class Generate {
 		return FALSE;
 	}
 
-	private function get_core() {
+	private function get_core(): array
+    {
 		// Verbose output
 		Utils::line( "%W- Checking %n%Ccore%n%W...\n" );
 		// Get locale
@@ -120,11 +122,12 @@ class Generate {
 		);
 	}
 
-	private function get_plugins() {
+	private function get_plugins(): array
+    {
 		// Verbose output
 		Utils::line( "%W- Checking %n%Cplugins%n%W...\n" );
 		$installed_plugins = get_plugins();
-		$plugins           = NULL;
+		$plugins           = null;
 		if ( ! empty( $installed_plugins ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 			foreach ( $installed_plugins as $file => $details ) {
@@ -157,11 +160,12 @@ class Generate {
 		return $plugins;
 	}
 
-	private function get_themes() {
+	private function get_themes(): array
+    {
 		// Verbose output
 		Utils::line( "%W- Checking %n%Cthemes%n%W...\n" );
 		$installed_themes = wp_get_themes();
-		$themes           = NULL;
+		$themes           = null;
 		if ( ! empty( $installed_themes ) ) {
 			$current_theme = get_stylesheet();
 			foreach ( $installed_themes as $slug => $theme ) {
@@ -194,7 +198,7 @@ class Generate {
 						// Message.
 						Utils::line( "%W  %n%G$main_theme%n%W (%n$origin_colorize%W)\n" );
 						// Add theme to the themes list.
-						$themes[ $origin ][ $main_theme ] = NULL;
+						$themes[ $origin ][ $main_theme ] = null;
 					}
 				}
 			}
@@ -204,7 +208,8 @@ class Generate {
 		return $themes;
 	}
 
-	private function save_gitignore( $custom_items = [] ) {
+	private function save_gitignore( $custom_items = [] ): bool
+    {
 		// .gitignore path.
 		$gitignore_path = ABSPATH . '.gitignore';
 		if ( $gitignore_path == '/.gitignore' ) {

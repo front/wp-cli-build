@@ -6,20 +6,21 @@ use WP_CLI_Build\Helper\Utils;
 
 class Build_Parser {
 
-	private $filename = 'build.json';
-	private $format = 'json';
-	private $build = [];
+	private mixed $filename = 'build.json';
+	private string $format = 'json';
+	private array $build = [];
 
-	public function __construct( $filename, $assoc_args = NULL ) {
+	public function __construct( $filename, $assoc_args = null ) {
 		// Set Build file.
 		$this->filename = empty( $filename ) ? 'build.json' : $filename;
 		// Set format.
-		$this->format = ( strpos( $this->filename, 'yml' ) !== FALSE ) ? 'yml' : 'json';
+		$this->format = (str_contains($this->filename, 'yml')) ? 'yml' : 'json';
 		// Parse the Build file and Build sure it's valid.
 		$this->parse();
 	}
 
-	private function parse() {
+	private function parse(): void
+    {
 		// Full Build file path.
 		$file_path = ( Utils::is_absolute_path( $this->filename ) ) ? $this->filename : realpath( '.' ) . '/' . $this->filename;
 		// Set specified path with --path argument.
@@ -28,7 +29,7 @@ class Build_Parser {
 		}
 		// Check if the file exists.
 		if ( ! file_exists( $file_path ) ) {
-			return NULL;
+            return;
 		}
 		// Check if the Build file is a valid yaml file.
 		if ( $this->format == 'yml' ) {
@@ -37,10 +38,10 @@ class Build_Parser {
 			} catch ( \Exception $e ) {
 				WP_CLI::error( 'Error parsing YAML from Build file (' . $this->filename . ').' );
 
-				return FALSE;
+                return;
 			}
 
-			return TRUE;
+            return;
 		}
 
 		// Build.json
@@ -49,13 +50,12 @@ class Build_Parser {
 		} catch ( \Exception $e ) {
 			WP_CLI::error( 'Error parsing JSON from Build file (' . $this->filename . ').' );
 
-			return FALSE;
+            return;
 		}
 
-		return TRUE;
-	}
+    }
 
-	public function get( $key = NULL, $sub_key = NULL ) {
+	public function get( $key = null, $sub_key = null ) {
 
 		// With subkey.
 		if ( ! empty( $this->build[ $key ][ $sub_key ] ) ) {
@@ -75,7 +75,7 @@ class Build_Parser {
 			return $this->build['core']['download']['version'];
 		}
 
-		return NULL;
+		return null;
 	}
 
 	public function get_plugin_version( $slug ) {
@@ -83,7 +83,7 @@ class Build_Parser {
 			return $this->build['plugins'][ $slug ]['version'];
 		}
 
-		return NULL;
+		return null;
 	}
 
 	public function get_theme_version( $slug ) {
@@ -91,6 +91,6 @@ class Build_Parser {
 			return $this->build['themes'][ $slug ]['version'];
 		}
 
-		return NULL;
+		return null;
 	}
 }
