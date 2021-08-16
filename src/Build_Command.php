@@ -8,7 +8,7 @@ use WP_CLI_Build\Helper\Utils;
 class Build_Command extends \WP_CLI_Command {
 
 	/**
-	 * Installs wordpress, plugins and themes.
+	 * Installs WordPress, plugins and themes.
 	 *
 	 * ## OPTIONS
 	 *
@@ -67,7 +67,7 @@ class Build_Command extends \WP_CLI_Command {
 	 *
 	 * @when  before_wp_load
 	 */
-	public function __invoke( $args = NULL, $assoc_args = NULL ) {
+	public function __invoke( $args = null, $assoc_args = null ) {
 
 		$build_filename = Utils::get_build_filename( $assoc_args );
 		WP_CLI::line( WP_CLI::colorize( "%GParsing %W$build_filename%n%G, please wait...%n" ) );

@@ -33,7 +33,7 @@ class Build_Generate_Command extends \WP_CLI_Command {
 	 *     wp build-generate --output=production.yml
 	 *
 	 */
-	public function __invoke( $args = NULL, $assoc_args = NULL ) {
+	public function __invoke( $args = null, $assoc_args = null ) {
 
 		// Build file.
 		$build_filename = Utils::get_build_filename( $assoc_args );

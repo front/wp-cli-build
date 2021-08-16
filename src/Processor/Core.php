@@ -7,17 +7,18 @@ use WP_CLI_Build\Helper\WP_API;
 
 class Core {
 
-	private $build;
-	private $assoc_args;
+	private Build_Parser $build;
+	private mixed $assoc_args;
 
-	public function __construct( $assoc_args = NULL ) {
+	public function __construct( $assoc_args = null ) {
 		// Build file.
 		$this->build = new Build_Parser( Utils::get_build_filename( $assoc_args ), $assoc_args );
 		// Set command arguments.
 		$this->assoc_args = $assoc_args;
 	}
 
-	public function process() {
+	public function process(): bool
+    {
 		// WP installation status.
 		$installed = Utils::wp_installed();
 		// Check if we have core info in build.yml.
@@ -45,11 +46,12 @@ class Core {
 	}
 
 	// Update WordPress if build.yml version is higher than currently installed.
-	private function update_wordpress() {
+	private function update_wordpress(): ?bool
+    {
 		// Config
 		$config             = $this->build->get( 'core', 'download' );
 		$installed_version  = Utils::wp_version();
-		$config_version     = empty( $config['version'] ) ? NULL : $config['version'];
+		$config_version     = empty( $config['version'] ) ? null : $config['version'];
 		$version_to_install = WP_API::core_version_check( $config_version );
 		// Compare installed version with the one in build.yml.
 		if ( version_compare( $installed_version, $version_to_install ) === - 1 ) {
@@ -64,11 +66,12 @@ class Core {
 			return Utils::result( $result );
 		}
 
-		return NULL;
+		return null;
 	}
 
 	// Download WordPress if not downloaded or if force setting is defined.
-	private function download_wordpress() {
+	private function download_wordpress(): ?bool
+    {
 		// Version check.
 		$version_check = Utils::wp_version();
 		// Config
@@ -85,7 +88,7 @@ class Core {
 				// Download WP without the default themes and plugins
 				$download_args['skip-content'] = isset( $config['skip-content'] ) ? $config['skip-content'] : TRUE;
 				// Whether to exit on error or not
-				$exit_on_error = isset( $config['exit-on-error'] ) ? $config['exit-on-error'] : FALSE;
+				$exit_on_error = $config['exit-on-error'] ?? FALSE;
 				// Force download.
 				if ( ( ! empty( $config['force'] ) ) && ( $config['force'] === TRUE ) ) {
 					$download_args['force'] = TRUE;
@@ -101,11 +104,12 @@ class Core {
 			}
 		}
 
-		return NULL;
+		return null;
 	}
 
 	// Configure WordPress if 'wp-config.php' is not found.
-	private function config_wordpress() {
+	private function config_wordpress(): ?bool
+    {
 		// Check if wp-config.php exists.
 		if ( ( ! Utils::wp_config_exists() ) || ( ! empty( $this->assoc_args['force'] ) ) ) {
 			// Version check.
@@ -166,10 +170,11 @@ class Core {
 			}
 		}
 
-		return NULL;
+		return null;
 	}
 
-	private function install_wordpress() {
+	private function install_wordpress(): ?bool
+    {
 		// Check if wp-config.php exists.
 		if ( Utils::wp_config_exists() ) {
 			// Config
@@ -199,10 +204,10 @@ class Core {
 
 				// Check if admin password is set, if not, ask for it.
 				if ( empty( $config['admin-pass'] ) ) {
-					$config['admin-pass'] = NULL;
+					$config['admin-pass'] = null;
 					do {
 						$config['admin-pass'] = Utils::prompt( WP_CLI::colorize( "    Enter the admin %Rpassword%n for the user %G{$config['admin-user']}%n: " ) );
-					} while ( $config['admin-pass'] == NULL );
+					} while ( $config['admin-pass'] == null );
 				}
 				$install_args['admin_password'] = $config['admin-pass'];
 
@@ -215,7 +220,7 @@ class Core {
 			}
 		}
 
-		return NULL;
+		return null;
 	}
 
 }
