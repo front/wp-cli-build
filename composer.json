@@ -14,6 +14,11 @@
       "name": "Fábio Neves",
       "email": "fabio@front.no",
       "homepage": "https://www.frontkom.no"
+    },
+    {
+      "name": "Krzysztof Branecki",
+      "email": "krzysztof.branecki@frontkom.com",
+      "homepage": "https://www.frontkom.com"
     }
   ],
   "minimum-stability": "dev",
@@ -23,9 +28,9 @@
     ]
   },
   "require": {
-    "alchemy/zippy": "0.4.4",
-    "wp-cli/wp-cli": ">=0.23.0",
-    "symfony/yaml": "3.4.4",
-    "phar-io/version": "^1.0"
+    "alchemy/zippy": "1.0.0",
+    "wp-cli/wp-cli": ">=2.0",  
+    "symfony/yaml": "6.0.3",
+    "phar-io/version": "^3.1.1"
   }
 }
