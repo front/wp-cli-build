@@ -1,5 +1,5 @@
 {
-  "name": "front/wp-cli-build",
+  "name": "front-it/wp-cli-build",
   "description": "Fetch specific versions of plugins/themes from wordpress.org using a build file",
   "type": "wp-cli-package",
   "homepage": "https://github.com/front/wp-cli-build",
