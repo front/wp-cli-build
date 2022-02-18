@@ -2,4 +2,6 @@
 .editorconfig
 .DS_Store
 .phpunit.cache
+wp-config*
 vendor
+wordpress

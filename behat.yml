@@ -1,0 +1,8 @@
+# This will make sure that the automated Behat system works across all platforms. This is needed on Windows.
+default:
+  suites:
+    default:
+      contexts:
+        - WP_CLI\Tests\Context\FeatureContext
+      paths:
+        - features
