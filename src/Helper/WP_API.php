@@ -4,7 +4,7 @@ use Requests;
 
 class WP_API {
 
-	public static function core_version_check( $config_version = null ) {
+	public static function core_version_check(string $config_version = null) {
 		if ( ! empty( $config_version ) ) {
 			$response = Requests::get( 'http://api.wordpress.org/core/stable-check/1.0/' );
 			if ( ! empty( $response->body ) ) {

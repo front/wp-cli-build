@@ -352,7 +352,7 @@ class Utils {
 		return min( $chr );
 	}
 
-	public static function determine_core_version( $versions, $config_version ) {
+	public static function determine_core_version(array $versions, string $config_version) {
 		if ( ( ! empty( $versions ) ) && ( $config_version ) ) {
 			// Determine config version major and min version (if applicable).
 			asort( $versions );
