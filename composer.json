@@ -7,16 +7,20 @@
   "authors": [
     {
       "name": "Frontkom",
-      "email": "front@front.no",
-      "homepage": "https://www.frontkom.no"
-    },
-    {
-      "name": "Fábio Neves",
-      "email": "fabio@front.no",
-      "homepage": "https://www.frontkom.no"
+      "email": "hello@frontkom.com",
+      "homepage": "https://frontkom.com"
     }
   ],
   "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "discard-changes": true,
+    "sort-packages": true,
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+
   "autoload": {
     "files": [
       "command.php"
@@ -27,5 +31,12 @@
     "wp-cli/wp-cli": ">=0.23.0",
     "symfony/yaml": "3.4.4",
     "phar-io/version": "^1.0"
+  },
+  "require-dev": {
+    "dealerdirect/phpcodesniffer-composer-installer": "^v0.7.2",
+    "phpstan/phpstan": "^1.8.6",
+    "roave/security-advisories": "dev-latest",
+    "slevomat/coding-standard": "^8.5.2",
+    "squizlabs/php_codesniffer": "^3.7.1"
   }
 }
