@@ -11,9 +11,17 @@ For more background, check out [A Git Friendly Way to Handle WordPress Updates â
 This package requires [WP-CLI](https://make.wordpress.org/cli/handbook/installing/) v1.5 or greater. You can check WP-CLI version with `$ wp --version` and update to the latest stable release with `$ wp cli update`. 
 
 ### Installing
-Install **WP-CLI Build** from our git repo:
+**PHP 7.4:** Install **WP-CLI Build** from our git repo
 ```sh
 $ wp package install front/wp-cli-build
+```
+**PHP 8.0:** Install **WP-CLI Build** from our git repo
+```sh
+$ wp package install front/wp-cli-build:8.0.0
+```
+**PHP 8.1:** Install **WP-CLI Build** from our git repo
+```sh
+$ wp package install front/wp-cli-build:8.1.0
 ```
 
 **Note:** The WP-CLI package installer will fail silently if your memory limit is too low. To see if installation was successful, run `$ wp package list`. If empty, locate your php.ini and increase the memory_limit.
