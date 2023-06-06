@@ -85,7 +85,7 @@ class Item {
 		if ( ( $type == 'theme' || $type == 'plugin' ) && ( ! empty( $item ) ) && ( ! empty( $item_info ) ) ) {
 			// Check if the item folder already exists or not.
 			// If the folder exists and the version is the same as the build file, skip it.
-			$folder = Utils::wp_path( 'wp-content/' . $type . 's/' . $item );
+			$folder = Utils::wp_item_dir( $type, $item );
 			$exists = $this->filesystem->exists( $folder );
 			// If the folder doesn't exist, download the plugin.
 			if ( ! $exists ) {
@@ -252,7 +252,7 @@ class Item {
 
 	private function delete_item_folder( $type = NULL, $item = NULL ) {
 		if ( ( ! empty( $type ) ) && ( ! empty( $item ) ) ) {
-			$folder = Utils::wp_path( 'wp-content/' . $type . 's/' . $item );
+			$folder = Utils::wp_item_dir( $type, $item );
 
 			return $this->filesystem->remove( $folder );
 		}

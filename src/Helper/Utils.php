@@ -40,13 +40,43 @@ class Utils {
 		return true;
 	}
 
-	public static function wp_path( $path = null ) {
-		$wp_path = ABSPATH;
+	public static function wp_path( $path = NULL ) {
+		$wp_path = self::get_absolute_path(ABSPATH);
 		if ( ! empty( $path ) ) {
-			$wp_path = ( ( ! self::is_absolute_path( ABSPATH ) ) || ( $wp_path == '/' ) ) ? getcwd() . '/' . $path : $wp_path . '/' . $path;
+			$wp_path .= '/' . $path;
 		}
 
 		return $wp_path;
+	}
+
+	public static function wp_item_dir( $type = '', $item = '' ) {
+		$options = array(
+			'return' => true,
+			'parse' => false,
+			'launch' => false,
+			'exit_error' => false,
+			'command_args' => [ '--quiet' ],
+		);
+
+		switch ( $type ) {
+			case 'theme':
+				@$wp_theme_dir = WP_CLI::runcommand( 'config get WP_THEME_DIR', $options );
+				$wp_theme_dir = empty( $wp_theme_dir ) ? 'wp-content/themes' : $wp_theme_dir;
+				$wp_theme_dir = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $wp_theme_dir);
+				$wp_item_dir = self::get_absolute_path($wp_theme_dir) . '/' . $item ;
+				break;
+			case 'plugin':
+				@$wp_plugin_dir = WP_CLI::runcommand( 'config get WP_PLUGIN_DIR', $options );
+				$wp_plugin_dir = empty( $wp_plugin_dir ) ? 'wp-content/plugins' : $wp_plugin_dir;
+				$wp_plugin_dir = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $wp_plugin_dir);
+				$wp_item_dir = self::get_absolute_path($wp_plugin_dir) . '/' . $item ;
+				break;
+			default:
+				$wp_item_dir = '';
+				break;
+		}
+
+		return $wp_item_dir;
 	}
 
 	public static function line( $text, $pseudo_tab = false ) {
@@ -62,6 +92,10 @@ class Utils {
 
 			return stream_get_line( STDIN, 1024, PHP_EOL );
 		}
+	}
+
+	public static function get_absolute_path( $path ) {
+		return ( ( ! self::is_absolute_path( $path ) ) || ( $path == '/' ) ) ? getcwd() . '/' . $path : $path;
 	}
 
 	public static function is_absolute_path( $path ) {
@@ -232,7 +266,7 @@ class Utils {
 	public static function item_unzip( $type, $filename ) {
 		$file_path = self::wp_path( 'wp-content/' . $filename );
 		if ( file_exists( $file_path ) ) {
-			if ( self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) ) ) {
+			if ( self::unzip( $file_path, Utils::wp_item_dir( $type ) ) ) {
 				return true;
 			}
 		}
