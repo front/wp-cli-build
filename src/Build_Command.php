@@ -27,6 +27,9 @@ class Build_Command extends \WP_CLI_Command {
 	 * [--ignore-themes]
 	 * : Don't process themes
 	 *
+	 * [--yes]
+	 * : Skip confirmation of some questions
+	 *
 	 * [--dbname]
 	 * : Database name for wp-config.php (if WP is not installed)
 	 *
@@ -63,7 +66,7 @@ class Build_Command extends \WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp build
-	 *     wp build --file=production.json --no-plugins
+	 *     wp build --file=production.json --ignore-plugins
 	 *
 	 * @when  before_wp_load
 	 */
@@ -73,12 +76,12 @@ class Build_Command extends \WP_CLI_Command {
 		WP_CLI::line( WP_CLI::colorize( "%GParsing %W$build_filename%n%G, please wait...%n" ) );
 
 		// Clean mode check
-		if ( ! empty( $assoc_args['clean'] ) ) {
+		if ( ( ! empty( $assoc_args['clean'] ) ) && ( empty( $assoc_args['yes'] ) ) ) {
 			WP_CLI::confirm( WP_CLI::colorize( "\n%RItems will be deleted! => This will delete and re-download all plugins and themes listed in build file.\n%n%YAre you sure you want to continue?%n" ) );
 		}
 
 		// Process core.
-		if ( empty( $assoc_args['no-core'] ) ) {
+		if ( empty( $assoc_args['ignore-core'] ) ) {
 			$core = new Core( $assoc_args );
 			$core = $core->process();
 		}
@@ -87,12 +90,12 @@ class Build_Command extends \WP_CLI_Command {
 		$item = new Item( $assoc_args );
 
 		// Process plugins.
-		if ( empty( $assoc_args['no-plugins'] ) ) {
+		if ( empty( $assoc_args['ignore-plugins'] ) ) {
 			$plugins = $item->run( 'plugin' );
 		}
 
 		// Process themes.
-		if ( empty( $assoc_args['no-themes'] ) ) {
+		if ( empty( $assoc_args['ignore-themes'] ) ) {
 			$themes = $item->run( 'theme' );
 		}
 

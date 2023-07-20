@@ -14,43 +14,73 @@ class Utils {
 
 	public static function wp_config_exists() {
 		if ( ( file_exists( realpath( '.' ) . '/wp-config.php' ) ) || ( file_exists( ABSPATH . '/wp-config.php' ) ) ) {
-			return TRUE;
+			return true;
 		}
 
-		return FALSE;
+		return false;
 	}
 
 	// Return WP version.
 	public static function wp_version() {
-		$result = self::launch_self( 'core', [ 'version' ], [], FALSE, TRUE, [], FALSE, FALSE );
+		$result = self::launch_self( 'core', [ 'version' ], [], false, true, [], false, false );
 		if ( ! empty( $result->stdout ) ) {
 			return trim( $result->stdout );
 		}
 
-		return FALSE;
+		return false;
 	}
 
 	// Check if WP is installed.
 	public static function wp_installed() {
-		$result = self::launch_self( 'core', [ 'is-installed' ], [], FALSE, TRUE, [], FALSE, FALSE );
+		$result = self::launch_self( 'core', [ 'is-installed' ], [], false, true, [], false, false );
 		if ( ! empty( $result->return_code ) ) {
-			return FALSE;
+			return false;
 		}
 
-		return TRUE;
+		return true;
 	}
 
 	public static function wp_path( $path = NULL ) {
-		$wp_path = ABSPATH;
+		$wp_path = self::get_absolute_path(ABSPATH);
 		if ( ! empty( $path ) ) {
-			$wp_path = ( ( ! self::is_absolute_path( ABSPATH ) ) || ( $wp_path == '/' ) ) ? getcwd() . '/' . $path : $wp_path . '/' . $path;
+			$wp_path .= '/' . $path;
 		}
 
 		return $wp_path;
 	}
 
-	public static function line( $text, $pseudo_tab = FALSE ) {
-		$spaces = ( $pseudo_tab ) ? '  ' : NULL;
+	public static function wp_item_dir( $type = '', $item = '' ) {
+		$options = array(
+			'return' => true,
+			'parse' => false,
+			'launch' => false,
+			'exit_error' => false,
+			'command_args' => [ '--quiet' ],
+		);
+
+		switch ( $type ) {
+			case 'theme':
+				@$wp_theme_dir = WP_CLI::runcommand( 'config get WP_THEME_DIR', $options );
+				$wp_theme_dir = empty( $wp_theme_dir ) ? 'wp-content/themes' : $wp_theme_dir;
+				$wp_theme_dir = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $wp_theme_dir);
+				$wp_item_dir = self::get_absolute_path($wp_theme_dir) . '/' . $item ;
+				break;
+			case 'plugin':
+				@$wp_plugin_dir = WP_CLI::runcommand( 'config get WP_PLUGIN_DIR', $options );
+				$wp_plugin_dir = empty( $wp_plugin_dir ) ? 'wp-content/plugins' : $wp_plugin_dir;
+				$wp_plugin_dir = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $wp_plugin_dir);
+				$wp_item_dir = self::get_absolute_path($wp_plugin_dir) . '/' . $item ;
+				break;
+			default:
+				$wp_item_dir = '';
+				break;
+		}
+
+		return $wp_item_dir;
+	}
+
+	public static function line( $text, $pseudo_tab = false ) {
+		$spaces = ( $pseudo_tab ) ? '  ' : null;
 		echo $spaces . WP_CLI::colorize( $text );
 	}
 
@@ -62,6 +92,10 @@ class Utils {
 
 			return stream_get_line( STDIN, 1024, PHP_EOL );
 		}
+	}
+
+	public static function get_absolute_path( $path ) {
+		return ( ( ! self::is_absolute_path( $path ) ) || ( $path == '/' ) ) ? getcwd() . '/' . $path : $path;
 	}
 
 	public static function is_absolute_path( $path ) {
@@ -85,13 +119,13 @@ class Utils {
 			throw new \DomainException( $mess );
 		}
 		if ( '' !== $parts['root'] ) {
-			return TRUE;
+			return true;
 		}
 
-		return FALSE;
+		return false;
 	}
 
-	public static function launch_self( $command, $args = [], $assoc_args = [], $exit_on_error = TRUE, $return_detailed = FALSE, $runtime_args = [], $exit_on_error_print = FALSE, $print = TRUE ) {
+	public static function launch_self( $command, $args = [], $assoc_args = [], $exit_on_error = true, $return_detailed = false, $runtime_args = [], $exit_on_error_print = false, $print = true ) {
 		// Work around to add 'cache dir' as env var, to avoid permission errors.
 		$full_command = self::get_launch_self_workaround_command( $command, $args, $assoc_args, $runtime_args );
 		// Run command.
@@ -113,7 +147,7 @@ class Utils {
 		return $result;
 	}
 
-	private static function get_launch_self_workaround_command( $command = NULL, $args = [], $assoc_args = [], $runtime_args = [] ) {
+	private static function get_launch_self_workaround_command( $command = null, $args = [], $assoc_args = [], $runtime_args = [] ) {
 		$reused_runtime_args = [
 			'path',
 			'url',
@@ -142,7 +176,7 @@ class Utils {
 		return "WP_CLI_CACHE_DIR={$cache_dir} WP_CLI_CONFIG_PATH={$config_path} {$php_bin} {$script_path} {$command} {$args} {$assoc_args}";
 	}
 
-	public static function item_download( $type = NULL, $slug = NULL, $version = NULL ) {
+	public static function item_download( $type = null, $slug = null, $version = null ) {
 		if ( ( ! empty( $slug ) ) && ( $type == 'plugin' || $type == 'theme' ) && ( ! empty( $version ) ) ) {
 			$info_fn = $type . '_info';
 			$info    = WP_API::$info_fn( $slug, $version );
@@ -150,18 +184,20 @@ class Utils {
 				return 'not available in wordpress.org';
 			}
 			// Status message.
-			$status             = '';
+			$status = '';
 			// Uses custom 'version_link' to download the item.
 			if ( ! empty( $info->version_link ) ) {
-				$failed_version_download = FALSE;
-				$filename = basename( $info->version_link );
+				$failed_version_download = false;
+				$filename                = basename( $info->version_link );
 				if ( ! empty( $filename ) ) {
 					$download = Utils::download_url( $info->version_link );
-					if ( $download !== TRUE ) {
-						$failed_version_download = TRUE;
-						$status .= "failed to download specified version of the plugin, trying latest version...%n\n\n\t%YFailed link:%n {$info->version_link}\n\t%BHTTP code:%n {$download}";
+					if ( $download !== true ) {
+						$failed_version_download = true;
+						$status                  .= "failed to download specified version of the plugin, trying latest version...%n\n\n\t%YFailed link:%n {$info->version_link}\n\t%BHTTP code:%n {$download}";
 					}
-					if ( empty( $status ) && ( ! Utils::item_unzip( $type, $filename ) ) ) {
+					if ( empty( $status ) && ( Utils::item_unzip( $type, $filename ) ) ) {
+						return true;
+					} else {
 						$status .= "failed to unzip $type, deleting $filename...";
 					}
 				}
@@ -171,46 +207,45 @@ class Utils {
 				$filename = basename( $info->download_link );
 				if ( ! empty( $filename ) ) {
 					$download = Utils::download_url( $info->download_link );
-					if ( $download !== TRUE ) {
+					if ( $download !== true ) {
 						if ( ! empty( $status ) ) {
 							$status .= "";
 						}
 						$status .= "failed to download plugin, details below...%n\n\n\t%YLink:%n {$info->download_link}\n\t%BHTTP status code:%n {$download}\n";
 					}
-					if ( empty( $status ) || ( $download === TRUE ) ) {
+					if ( empty( $status ) || ( $download === true ) ) {
 						if ( ! Utils::item_unzip( $type, $filename ) ) {
 							$status .= "failed to unzip $type, deleting $filename...";
 						}
 					}
-					if (( ! empty( $status ) ) && ($failed_version_download)) {
+					if ( ( ! empty( $status ) ) && ( $failed_version_download ) ) {
 						$status .= "\n\n\t%GSuccess!%n\n\t%YLink:%n {$info->download_link}\n\t%BVersion:%n $info->original_version\n%n";
 					}
-				}
-				else {
+				} else {
 					return "failed to determine filename from the plugin download link: {$info->download_link}";
 				}
 			} else {
 				return 'no download link provided by the WordPress API, failed.';
 			}
 
-			return empty($status) ? TRUE : $status;
+			return empty( $status ) ? true : $status;
 		}
 
-		return NULL;
+		return null;
 	}
 
-	public static function download_url( $url = NULL ) {
+	public static function download_url( $url = null ) {
 		// If we have an URL proceed.
 		if ( ! empty( $url ) ) {
 			$filename = basename( $url );
 			if ( ! empty( $filename ) ) {
 				$save_dir   = self::wp_path( 'wp-content/' );
 				$create_dir = self::mkdir( $save_dir );
-				if ( $create_dir === TRUE ) {
+				if ( $create_dir === true ) {
 					$save_path = $save_dir . $filename;
-					$download  = Requests::get( $url, [], [ 'filename' => $save_path, 'verify' => FALSE, 'timeout' => 20 ] );
+					$download  = Requests::get( $url, [], [ 'filename' => $save_path, 'verify' => false, 'timeout' => 20 ] );
 					if ( $download->status_code == 200 ) {
-						return TRUE;
+						return true;
 					}
 
 					return $download->status_code;
@@ -225,21 +260,21 @@ class Utils {
 			@unlink( $save_path );
 		}
 
-		return FALSE;
+		return false;
 	}
 
 	public static function item_unzip( $type, $filename ) {
 		$file_path = self::wp_path( 'wp-content/' . $filename );
 		if ( file_exists( $file_path ) ) {
-			if ( self::unzip( $file_path, Utils::wp_path( 'wp-content/' . $type . 's/' ) ) ) {
-				return TRUE;
+			if ( self::unzip( $file_path, Utils::wp_item_dir( $type ) ) ) {
+				return true;
 			}
 		}
 
-		return FALSE;
+		return false;
 	}
 
-	public static function unzip( $file, $to, $delete = TRUE ) {
+	public static function unzip( $file, $to, $delete = true ) {
 		if ( ( ! empty( $file ) ) && ( ! empty( $to ) ) ) {
 
 			// Create the directory to extract to.
@@ -252,26 +287,26 @@ class Utils {
 				} catch ( InvalidArgumentException $e ) {
 					@unlink( $file );
 
-					return FALSE;
+					return false;
 				} catch ( RuntimeException $e ) {
 					@unlink( $file );
 
-					return FALSE;
+					return false;
 				}
 
 				if ( $delete ) {
 					@unlink( $file );
 				}
 
-				return TRUE;
+				return true;
 			}
 
 		}
 
-		return FALSE;
+		return false;
 	}
 
-	public static function mkdir( $dir = NULL ) {
+	public static function mkdir( $dir = null ) {
 		if ( ! empty( $dir ) ) {
 			if ( ! file_exists( $dir ) ) {
 				$fs = new Filesystem();
@@ -285,21 +320,21 @@ class Utils {
 
 				return file_exists( $dir );
 			} else {
-				return TRUE;
+				return true;
 			}
 		}
 
-		return FALSE;
+		return false;
 	}
 
 	// Print success or error message.
-	public static function result( $result = NULL ) {
+	public static function result( $result = null ) {
 		if ( ! empty( $result ) ) {
 			// Success.
 			if ( ! empty( $result->stdout ) && ( empty( $result->stderr ) ) ) {
 				self::line( ": done\n" );
 
-				return TRUE;
+				return true;
 			}
 
 			// Output error.
@@ -309,18 +344,18 @@ class Utils {
 			}
 		}
 
-		return FALSE;
+		return false;
 	}
 
-	public static function convert_to_numeric( $version = NULL ) {
+	public static function convert_to_numeric( $version = null ) {
 		if ( ( ! empty( $version ) ) && ( is_numeric( $version ) ) ) {
-			return strpos( $version, '.' ) === FALSE ? (int) $version : (float) $version;
+			return strpos( $version, '.' ) === false ? (int) $version : (float) $version;
 		}
 
 		return $version;
 	}
 
-	public static function get_build_filename( $assoc_args = NULL ) {
+	public static function get_build_filename( $assoc_args = null ) {
 		// Legacy YAML support.
 		if ( file_exists( self::wp_path( 'build.yml' ) ) ) {
 			return 'build.yml';
@@ -340,25 +375,50 @@ class Utils {
 		$chr = [];
 		foreach ( $needles as $needle ) {
 			$res = strpos( $haystack, $needle, $offset );
-			if ( $res !== FALSE ) {
+			if ( $res !== false ) {
 				$chr[ $needle ] = $res;
 			}
 		}
 		if ( empty( $chr ) ) {
-			return FALSE;
+			return false;
 		}
 
 		return min( $chr );
 	}
 
+	public static function determine_core_version( $versions, $config_version ) {
+		if ( ( ! empty( $versions ) ) && ( $config_version ) ) {
+			// Determine config version major and min version (if applicable).
+			asort( $versions );
+			$parser = new VersionConstraintParser();
+			try {
+				$parsed_version = $parser->parse( $config_version );
+				// Loop through versions to determine the one to applicate.
+				foreach ( $versions as $v ) {
+					try {
+						$complies = $parsed_version->complies( new Version( $v ) );
+						if ( $complies ) {
+							$config_version = $v;
+						}
+					} catch ( \Exception $e ) {
+					}
+				}
+			} catch ( \Exception $e ) {
+				return $versions[ count( $versions ) - 1 ];
+			}
+		}
+
+		return $config_version;
+	}
+
 	public static function version_comply( $version, $latest_version ) {
 		// Determine the item version if we have '^', '~' or '*'.
-		if ( Utils::strposa( $version, [ '~', '^', '*' ] ) !== FALSE ) {
+		if ( Utils::strposa( $version, [ '~', '^', '*' ] ) !== false ) {
 			// Return latest version if '*'.
-			if ( strpos( $version, '*' ) ) {
+			if ( strpos( $version, '*' ) === 0 ) {
 				return $latest_version;
 			}
-			// Figure out version if '^' or '~' operators are used.
+			// Figure out version if '^', '~' or '*' operators are used.
 			$parser           = new VersionConstraintParser();
 			$caret_constraint = $parser->parse( $version );
 			try {
@@ -379,14 +439,14 @@ class Utils {
 			return $wporg_latest;
 		}
 		// Determine the item version if we have '^', '~' or '*'.
-		if ( Utils::strposa( $item_version, [ '~', '^', '.*' ] ) !== FALSE ) {
+		if ( Utils::strposa( $item_version, [ '~', '^', '.*' ] ) !== false ) {
 			// Figure out the version if '^', '~' and '.*' are used.
 			if ( ! empty( $wporg_versions ) ) {
 				$parser                          = new VersionConstraintParser();
 				$caret_constraint                = $parser->parse( $item_version );
 				$wporg_versions->{$wporg_latest} = 'latest';
 				foreach ( $wporg_versions as $version => $url ) {
-					$complies = FALSE;
+					$complies = false;
 					try {
 						if ( version_compare( $item_version, $version, '<' ) ) {
 							$complies = $caret_constraint->complies( new Version( $version ) );
@@ -397,7 +457,7 @@ class Utils {
 						$item_version = $version;
 					}
 				}
-				if ( Utils::strposa( $item_version, [ '~', '^', '.*' ] ) !== FALSE ) {
+				if ( Utils::strposa( $item_version, [ '~', '^', '.*' ] ) !== false ) {
 					return $wporg_latest;
 				}
 

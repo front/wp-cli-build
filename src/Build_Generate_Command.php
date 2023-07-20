@@ -12,8 +12,8 @@ class Build_Generate_Command extends \WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--output=<file>]
-	 * : Where to output build generation result (yml file)
+	 * [--file=<file>]
+	 * : Where to output build generation result (json file)
 	 *
 	 * [--format]
 	 * : Build file format: json or yml
@@ -30,7 +30,7 @@ class Build_Generate_Command extends \WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp build-generate
-	 *     wp build-generate --output=production.yml
+	 *     wp build-generate --file=production.yml
 	 *
 	 */
 	public function __invoke( $args = NULL, $assoc_args = NULL ) {
@@ -52,7 +52,7 @@ class Build_Generate_Command extends \WP_CLI_Command {
 		$generator->create_build_file();
 
 		// Attempt to gitignore.
-		if ( empty( $assoc_args['no-gitignore'] ) ) {
+		if ( empty( $assoc_args['skip-git'] ) ) {
 			$generator->create_gitignore();
 		}
 

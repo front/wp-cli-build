@@ -4,19 +4,23 @@ use Requests;
 
 class WP_API {
 
-	public static function core_version_check( $config_version = NULL ) {
-		$response = Requests::get( 'http://api.wordpress.org/core/version-check/1.7/' );
-		if ( ! empty( $response->body ) ) {
-			$core = json_decode( $response->body );
-			if ( ( ! empty( $config_version ) ) && ( ! empty( $core->offers[0]->current ) ) ) {
-				$config_version = Utils::version_comply( $config_version, $core->offers[0]->current );
+	public static function core_version_check( $config_version = null ) {
+		if ( ! empty( $config_version ) ) {
+			$response = Requests::get( 'http://api.wordpress.org/core/stable-check/1.0/' );
+			if ( ! empty( $response->body ) ) {
+				$core = json_decode( $response->body, true );
+				if ( ( ! empty( $core ) ) && ( is_array( $core ) ) ) {
+					$config_version = Utils::determine_core_version( array_keys( $core ), $config_version );
+				}
 			}
+
+			return $config_version;
 		}
 
-		return str_replace( [ '~', '^', '*' ], '', $config_version );
+		return null;
 	}
 
-	public static function plugin_info( $slug = NULL, $config_version = NULL ) {
+	public static function plugin_info( $slug = null, $config_version = null ) {
 		if ( ! empty( $slug ) ) {
 			$response = Requests::get( "http://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request[slug]={$slug}" );
 			if ( ! empty( $response->body ) ) {
@@ -35,15 +39,15 @@ class WP_API {
 
 		}
 
-		return NULL;
+		return null;
 	}
 
-	public static function theme_info( $slug = NULL, $config_version = NULL ) {
+	public static function theme_info( $slug = null, $config_version = null ) {
 		if ( ! empty( $slug ) ) {
 			$response = Requests::post(
 				'http://api.wordpress.org/themes/info/1.1/',
 				[],
-				[ 'action' => 'theme_information', 'request' => [ 'slug' => $slug, 'fields' => [ 'versions' => TRUE ] ] ]
+				[ 'action' => 'theme_information', 'request' => [ 'slug' => $slug, 'fields' => [ 'versions' => true ] ] ]
 			);
 			if ( ! empty( $response->body ) ) {
 				$theme = json_decode( $response->body );
@@ -61,7 +65,7 @@ class WP_API {
 
 		}
 
-		return NULL;
+		return null;
 	}
 
 	// Changes item download link with the specified version.
