@@ -23,11 +23,9 @@
     ]
   },
   "require": {
-    "alchemy/zippy": "^0.4",
+    "alchemy/zippy": "0.4.4",
+    "wp-cli/wp-cli": ">=0.23.0",
     "symfony/yaml": "3.4.4",
-    "phar-io/version": "^3.0"
-  },
-  "require-dev": {
-    "wp-cli/wp-cli": "^2.0"
+    "phar-io/version": "^1.0"
   }
 }
