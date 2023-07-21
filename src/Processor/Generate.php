@@ -204,88 +204,183 @@ class Generate {
 		return $themes;
 	}
 
-	private function create_gitignore_wp_build_block( $custom_items = [] ) {
-	  $gitignore = [];
+	private function get_custom_gitignore( $current_gitignore = [] ) {
+		if ( empty( $current_gitignore ) ) {
+			return [];
+		}
 
-	  // Start block and add common stuff.
-	  $gitignore[] = "# START WP-CLI BUILD BLOCK\n";
-	  $gitignore[] = "# ------------------------------------------------------------\n";
-	  $gitignore[] = "# This block is auto generated every time you run 'wp build-generate'\n";
-	  $gitignore[] = "# Rules: Exclude everything from Git except for your custom plugins and themes (that is: those that are not on wordpress.org)\n";
-	  $gitignore[] = "# ------------------------------------------------------------\n";
-	  $gitignore[] = "/*\n";
-	  $gitignore[] = "!.gitignore\n";
-	  $gitignore[] = "!{$this->build_filename}\n";
-	  $gitignore[] = "!wp-content\n";
-	  $gitignore[] = "wp-content/*\n";
-	  $gitignore[] = "!wp-content/plugins\n";
-	  $gitignore[] = "wp-content/plugins/*\n";
-	  $gitignore[] = "!wp-content/themes\n";
-	  $gitignore[] = "wp-content/themes/*\n";
+		// Remove WP-CLI Build block.
+		$start			  = array_search( "# START WP-CLI BUILD BLOCK\n", $current_gitignore );
+		$end			  = array_search( "# END WP-CLI BUILD BLOCK\n", $current_gitignore );
+		$custom_gitignore = $current_gitignore;
 
-	  // Add custom items.
-	  if ( ! empty( $custom_items ) ) {
-	    $gitignore[] = "# ------------------------------------------------------------\n";
-	    $gitignore[] = "# Your custom themes/plugins\n";
-	    $gitignore[] = "# Added automagically by WP-CLI Build (wp build-generate)\n";
-	    $gitignore[] = "# ------------------------------------------------------------\n";
-	    foreach ( $custom_items as $type => $items ) {
-	      foreach ( $items as $slug => $version ) {
-	        if ( ! empty( $slug ) ) {
-	          $gitignore[] = "!wp-content/$type/$slug/\n";
-	        }
-	      }
-	    }
-	  }
+		if ( ( is_int( $start ) ) && ( is_int( $end ) ) ) {
+			for ( $i = $start; $i <= $end; $i ++ ) {
+				unset( $custom_gitignore[ $i ] );
+			}
+		}
 
-	  // Close gitignore block.
-	  $gitignore[] = "# ------------------------------------------------------------\n";
-	  $gitignore[] = "# END WP-CLI BUILD BLOCK\n";
+		// Remove custom block text.
+		foreach( $custom_gitignore as $key => $line ) {
+			if ( ( strpos( $line, '# ------' ) !== false ) || ( strpos( $line, '# START CUSTOM' ) !== false ) || ( strpos( $line, '# Place any' ) !== false ) || ( strpos( $line, '# END CUSTOM' ) !== false ) ) {
+				unset( $custom_gitignore[$key] );
+			}
+		}
 
-	  return $gitignore;
+		// Remove multiple consecutive empty lines,
+		// and any empty line at the beginning.
+		$previous_line = "\n";
+
+		foreach( $custom_gitignore as $key => $line ) {
+			if ( ( $line === "\n" ) && ( $line === $previous_line ) ) {
+				unset( $custom_gitignore[$key] );
+			}
+
+			$previous_line = $line;
+		}
+
+		// Remove empty line at the end.
+		if ( end( $custom_gitignore ) === "\n") {
+			array_pop( $custom_gitignore );
+		}
+
+		// Make sure the last line ends with a newline character.
+		$last_line = array_pop( $custom_gitignore );
+
+		if ( ! empty ($last_line) && $last_line[-1] !== "\n") {
+			$last_line .= "\n";
+		}
+
+		$custom_gitignore[] = $last_line;
+
+		return $custom_gitignore;
+	}
+
+	private function order_custom_items( $custom_items = [] ) {
+		$ordered_items = [];
+
+		foreach ( $custom_items as $type => $items ) {
+			ksort( $items );
+
+			$ordered_items[$type] = $items;
+		}
+
+		return $ordered_items;
+	}
+
+	private function generate_gitignore( $custom_gitignore = [], $custom_items = [] ) {
+		$gitignore = [];
+
+		// Start WP-CLI Build block.
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+		$gitignore[] = "# START WP-CLI BUILD BLOCK\n";
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+		$gitignore[] = "# This block is auto generated every time you run 'wp build-generate'.\n";
+		$gitignore[] = "# Rules: Exclude everything from Git except for your custom plugins and themes\n";
+		$gitignore[] = "# (that is: those that are not on wordpress.org).\n";
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+
+		// Add common items.
+		$gitignore[] = "/*\n";
+		$gitignore[] = "!.gitignore\n";
+		$gitignore[] = "!{$this->build_filename}\n";
+		$gitignore[] = "!README.md\n";
+		$gitignore[] = "!wp-content\n";
+		$gitignore[] = "wp-content/*\n";
+		$gitignore[] = "!wp-content/plugins\n";
+		$gitignore[] = "wp-content/plugins/*\n";
+		$gitignore[] = "!wp-content/themes\n";
+		$gitignore[] = "wp-content/themes/*\n";
+
+		// Add custom plugins and themes.
+		if ( ! empty( $custom_items ) ) {
+			$gitignore[] = "# -----------------------------------------------------------------------------\n";
+			$gitignore[] = "# Your custom plugins and themes.\n";
+			$gitignore[] = "# Added automagically by WP-CLI Build ('wp build-generate').\n";
+			$gitignore[] = "# -----------------------------------------------------------------------------\n";
+
+			foreach ( $custom_items as $type => $items ) {
+				foreach ( $items as $slug => $contents ) {
+					if ( ! empty( $slug ) ) {
+						$gitignore[] = "!wp-content/$type/$slug/\n";
+					}
+				}
+			}
+		}
+
+		// End WP-CLI Build block.
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+		$gitignore[] = "# END WP-CLI BUILD BLOCK\n";
+		$gitignore[] = "# -----------------------------------------------------------------------------\n\n";
+
+		// Start custom block.
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+		$gitignore[] = "# START CUSTOM BLOCK\n";
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+		$gitignore[] = "# Place any additional items here.\n";
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+
+		// Add custom items.
+		$gitignore = array_merge( $gitignore, $custom_gitignore );
+
+		// End custom block.
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+		$gitignore[] = "# END CUSTOM BLOCK\n";
+		$gitignore[] = "# -----------------------------------------------------------------------------\n";
+
+		// Optimize gitignore.
+		$gitignore = $this->optimize_gitignore( $gitignore );
+
+		return $gitignore;
+	}
+
+	private function optimize_gitignore( $gitignore = [] ) {
+		$optimized_gitignore = [];
+
+		// Remove duplicate lines.
+		foreach( $gitignore as $key => $line ) {
+			if ( ( $line === "\n" ) || ( strpos( $line, '# ------' ) !== false ) || ( ! in_array( $line, $optimized_gitignore ) ) ) {
+				$optimized_gitignore[] = $line;
+			}
+		}
+
+		return $optimized_gitignore;
 	}
 
 	private function save_gitignore( $custom_items = [] ) {
-	  // .gitignore path.
-	  $gitignore_path = ABSPATH . '.gitignore';
-	  if ( $gitignore_path == '/.gitignore' ) {
-	    $gitignore_path = realpath( '.' ) . '/.gitignore';
-	  }
+		// .gitignore path.
+		$gitignore_path = ABSPATH . '.gitignore';
 
-	  // Check if the file exists and load.
-	  $gitignore_wp_build_block = $this->create_gitignore_wp_build_block( $custom_items );
+		if ( $gitignore_path == '/.gitignore' ) {
+			$gitignore_path = realpath( '.' ) . '/.gitignore';
+		}
 
-	  if ( file_exists( $gitignore_path ) ) {
-	    $gitignore = @file( $gitignore_path );
+		$custom_gitignore = [];
 
-	    // Check if the path is already in ignore file.
-	    if ( ! empty( $gitignore ) ) {
-	      // search for existing block from gitignore.
-	      $start = array_search( "# START WP-CLI BUILD BLOCK\n", $gitignore );
-	      $end   = array_search( "# END WP-CLI BUILD BLOCK\n", $gitignore );
+		// Check if the .gitignore file exists and load it.
+		if ( file_exists( $gitignore_path ) ) {
+			$current_gitignore = @file( $gitignore_path );
 
-	      // if existing block is found it is replaced, if not block is appended
-	      if ( ( is_int( $start ) ) && ( is_int( $end ) ) ) {
-	        $before_wp_build_block = array_slice($gitignore, 0, $start - 1);
-	        $after_wp_build_block = array_slice($gitignore, $end + 1);
-	        $gitignore = array_merge($before_wp_build_block, $gitignore_wp_build_block, $after_wp_build_block);
-	      } else {
-	        $gitignore = array_merge($gitignore, $gitignore_wp_build_block);
-	      }
-	    }
-	  } else {
-	    $gitignore = $gitignore_wp_build_block;
-	  }
+			// Check if the .gitignore file is not empty and get custom items.
+			if ( ! empty( $current_gitignore ) ) {
+				$custom_gitignore = $this->get_custom_gitignore( $current_gitignore );
+			}
+		}
 
-	  // Put content in .gitignore.
-	  if ( ! empty( $gitignore ) ) {
-	    @file_put_contents( $gitignore_path, $gitignore );
+		// Order custom items.
+		$custom_items = $this->order_custom_items( $custom_items );
 
-	    return TRUE;
-	  }
+		// Generate gitignore.
+		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items );
 
-	  return FALSE;
+		// Put content in .gitignore.
+		if ( ! empty( $gitignore ) ) {
+			@file_put_contents( $gitignore_path, $gitignore );
+
+			return TRUE;
+		}
+
+		return FALSE;
 	}
-
 
 }
