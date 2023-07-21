@@ -51,6 +51,9 @@ class Generate {
 
 		Utils::line( "%WGenerating %n%Y$this->build_filename%n%W with the items from %Ywp.org%n%W, please wait...%n" );
 
+		// Order build items.
+		$build = $this->order_build_items( $build );
+
 		// YAML.
 		if ( ( ( ! empty( $this->assoc_args['format'] ) ) && ( $this->assoc_args['format'] == 'yml' ) ) || ( strpos( $this->build_filename, 'yml' ) !== FALSE ) ) {
 			$content = Yaml::dump( $build, 10 );
@@ -59,6 +62,7 @@ class Generate {
 		// JSON.
 		if ( empty( $content ) ) {
 			$content = json_encode( $build, JSON_PRETTY_PRINT );
+			$content = ( ! empty( $content ) ) ? $content . "\n" : '';
 		}
 
 		// Write to file.
@@ -284,13 +288,15 @@ class Generate {
 		return $filtered_items;
 	}
 
-	private function order_custom_items( $custom_items = [] ) {
+	private function order_build_items( $build_items = [] ) {
 		$ordered_items = [];
 
-		foreach ( $custom_items as $type => $items ) {
-			ksort( $items );
+		foreach ( $build_items as $type => $items ) {
+			if ( is_array( $items ) ) {
+				ksort( $items );
 
-			$ordered_items[$type] = $items;
+				$ordered_items[$type] = $items;
+			}
 		}
 
 		return $ordered_items;
@@ -424,7 +430,7 @@ class Generate {
 		}
 
 		// Order custom items.
-		$custom_items = $this->order_custom_items( $custom_items );
+		$custom_items = $this->order_build_items( $custom_items );
 
 		// Generate gitignore.
 		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items, $composer_exists );
