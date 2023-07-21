@@ -256,6 +256,34 @@ class Generate {
 		return $custom_gitignore;
 	}
 
+	private function filter_composer_items( $custom_items = [], $composer_require = [] ) {
+		$filtered_items = [];
+
+		if ( empty( $custom_items ) ) {
+			return $filtered_items;
+		}
+		elseif ( empty( $composer_require ) ) {
+			return $custom_items;
+		}
+
+		$package_names = [];
+
+		foreach ( $composer_require as $package => $version ) {
+			$package_parts = explode( '/', $package );
+			$package_names[] = end( $package_parts );
+		}
+
+		foreach ( $custom_items as $type => $items ) {
+			foreach ( $items as $slug => $contents ) {
+				if ( ! empty( $slug ) && ! in_array( $slug, $package_names ) ) {
+					$filtered_items[$type][$slug] = $contents;
+				}
+			}
+		}
+
+		return $filtered_items;
+	}
+
 	private function order_custom_items( $custom_items = [] ) {
 		$ordered_items = [];
 
@@ -268,7 +296,7 @@ class Generate {
 		return $ordered_items;
 	}
 
-	private function generate_gitignore( $custom_gitignore = [], $custom_items = [] ) {
+	private function generate_gitignore( $custom_gitignore = [], $custom_items = [], $composer_exists = FALSE ) {
 		$gitignore = [];
 
 		// Start WP-CLI Build block.
@@ -280,10 +308,17 @@ class Generate {
 		$gitignore[] = "# (that is: those that are not on wordpress.org).\n";
 		$gitignore[] = "# -----------------------------------------------------------------------------\n";
 
-		// Add common items.
+		// Add main items.
 		$gitignore[] = "/*\n";
 		$gitignore[] = "!.gitignore\n";
 		$gitignore[] = "!{$this->build_filename}\n";
+
+		// Add composer.json.
+		if ( ! empty( $composer_exists ) ) {
+			$gitignore[] = "!composer.json\n";
+		}
+
+		// Add common items.
 		$gitignore[] = "!README.md\n";
 		$gitignore[] = "!wp-content\n";
 		$gitignore[] = "wp-content/*\n";
@@ -367,11 +402,32 @@ class Generate {
 			}
 		}
 
+		// composer.json path.
+		$composer_path = ABSPATH . 'composer.json';
+
+		if ( $composer_path == '/composer.json' ) {
+			$composer_path = realpath( '.' ) . '/composer.json';
+		}
+
+		// Check if the composer.json file exists and load it.
+		if ( file_exists( $composer_path ) ) {
+			$composer_exists = true;
+			$composer = file_get_contents( $composer_path );
+
+			if ( ! empty( $composer ) ) {
+				$composer = json_decode( $composer, true );
+
+				if ( ! empty( $composer['require'] ) ) {
+					$custom_items = $this->filter_composer_items( $custom_items, $composer['require'] );
+				}
+			}
+		}
+
 		// Order custom items.
 		$custom_items = $this->order_custom_items( $custom_items );
 
 		// Generate gitignore.
-		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items );
+		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items, $composer_exists );
 
 		// Put content in .gitignore.
 		if ( ! empty( $gitignore ) ) {
