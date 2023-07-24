@@ -13,7 +13,7 @@ This package requires [WP-CLI](https://make.wordpress.org/cli/handbook/installin
 ### Installing
 Install **WP-CLI Build** from our git repo:
 ```sh
-$ wp package install front/wp-cli-build:8.1.0
+$ wp package install front/wp-cli-build:8.2.0
 ```
 
 **Note:** The WP-CLI package installer will fail silently if your memory limit is too low. To see if installation was successful, run `$ wp package list`. If empty, locate your php.ini and increase the memory_limit.
