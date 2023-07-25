@@ -8,7 +8,7 @@ For more background, check out [A Git Friendly Way to Handle WordPress Updates �
 
 ## Getting Started
 ### Prerequistes
-This package requires [WP-CLI](https://make.wordpress.org/cli/handbook/installing/) v1.5 or greater. You can check WP-CLI version with `$ wp --version` and update to the latest stable release with `$ wp cli update`. 
+This package requires [WP-CLI](https://make.wordpress.org/cli/handbook/installing/) v2.0 or greater. You can check WP-CLI version with `$ wp --version` and update to the latest stable release with `$ wp cli update`. 
 
 ### Installing
 Install **WP-CLI Build** from our git repo:
@@ -19,43 +19,59 @@ $ wp package install front/wp-cli-build:8.0.0
 **Note:** The WP-CLI package installer will fail silently if your memory limit is too low. To see if installation was successful, run `$ wp package list`. If empty, locate your php.ini and increase the memory_limit.
 
 ## Quick Start
-You need WP installed to get started, so if you don't already have an existing site: `wp core download and install`.
-
-The ***build*** file is the base of **WP-CLI Build** and will contain your WP site core configuration and the list of used public plugins and themes. Last version of **WP-CLI Build** will generate a *`build.json`* file but we still support *`build.yml`*, so you can use both. 
+The ***build*** file is the base of **WP-CLI Build** and will contain your WP site core configuration and the list of used public plugins and themes. The latest version of **WP-CLI Build** will generate a *`build.json`* file, but we still support *`build.yml`*, so you can use both. 
 
 To generate the ***build*** file you should run:
 ```sh
 $ wp build-generate
 ```
-It will also rewrite your ***.gitignore*** to make sure only custom plugins and themes are indexed. Bellow, you can see a sample of the *WP-CLI BUILD BLOCK* added to ***.gitignore***:
+It will also rewrite your ***.gitignore*** file to make sure only custom plugins and themes are indexed. Additionally, if there is a `composer.json` file present, any plugins or themes that are installed with Composer will be excluded from the "custom plugins and themes" section.
+
+Bellow, you can see a sample of the *WP-CLI BUILD BLOCK* added to ***.gitignore***:
 ```
+# -----------------------------------------------------------------------------
 # START WP-CLI BUILD BLOCK
-# ------------------------------------------------------------
-# This block is auto generated every time you run 'wp build-generate'
-# Rules: Exclude everything from Git except for your custom plugins and themes (that is: those that are not on wordpress.org)
-# ------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# This block is auto generated every time you run 'wp build-generate'.
+# Rules: Exclude everything from Git except for your custom plugins and themes
+# (that is: those that are not on wordpress.org).
+# -----------------------------------------------------------------------------
 /*
 !.gitignore
 !build.json
+!composer.json
+!README.md
 !wp-content
 wp-content/*
 !wp-content/plugins
 wp-content/plugins/*
 !wp-content/themes
 wp-content/themes/*
-# ------------------------------------------------------------
-# Your custom themes/plugins
-# Added automagically by WP-CLI Build (wp build-generate)
-# ------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Your custom plugins and themes.
+# Added automagically by WP-CLI Build ('wp build-generate').
+# -----------------------------------------------------------------------------
 !wp-content/plugins/custom-plugin-slug/
 !wp-content/themes/custom-theme-slug/
-# ------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # END WP-CLI BUILD BLOCK
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# START CUSTOM BLOCK
+# -----------------------------------------------------------------------------
+# Place any additional items here.
+# -----------------------------------------------------------------------------
+!custom-items
+# -----------------------------------------------------------------------------
+# END CUSTOM BLOCK
+# -----------------------------------------------------------------------------
+
 ```
 
 ***Note:** Only active plugins and themes will be listed in **build** file and **gitignore**, unless you specify `--all` argument*.
 
-For more options, see `$ wp build-generate --help`
+For more options, see `$ wp build-generate --help`
 
 ## Using *build* file
 You can run `$ wp build` to install the WordPress core of your site, 3rd party plugins and themes. It parses your ***build*** file, and works its magic!
@@ -66,7 +82,7 @@ A sample of a ***build.json*** file:
 {
     "core": {
         "download": {
-            "version": "~4.9.4",
+            "version": "~6.2.2",
             "locale": "en_US"
         }
     },
@@ -75,36 +91,38 @@ A sample of a ***build.json*** file:
             "version": "*"
         },
         "timber-library": {
-            "version": "^1.7.0"
+            "version": "^1.22.1"
         },
         "wordpress-seo": {
             "version": "*"
         }
     },
     "themes": {
-        "twentyseventeen": {
-            "version": "1.4"
+        "twentytwentyone": {
+            "version": "1.8"
         }
     }
 }
+
 ```
 
 A sample of a ***build.yml*** file:
 ```
 core:
     download:
-        version: "~4.9.4"
+        version: "~6.2.2"
         locale: en_US
 plugins:
     advanced-custom-fields
         version: "*"
     timber-library:
-        version: "^1.7.0"
+        version: "^1.22.1"
     wordpress-seo:
         version: "*"
 themes:
-    twentyseventeen:
-        version: 1.4
+    twentytwentyone:
+        version: 1.8
+
 ```
 
 Notice that you can use `~`, `*` and `^` operators when you don't want to refer a fixed version. 
