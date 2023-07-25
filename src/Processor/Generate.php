@@ -51,6 +51,9 @@ class Generate {
 
 		Utils::line( "%WGenerating %n%Y$this->build_filename%n%W with the items from %Ywp.org%n%W, please wait...%n" );
 
+		// Filter empty build items.
+		$build = $this->filter_empty_build_items( $build );
+
 		// Order build items.
 		$build = $this->order_build_items( $build );
 
@@ -281,6 +284,20 @@ class Generate {
 			foreach ( $items as $slug => $contents ) {
 				if ( ! empty( $slug ) && ! in_array( $slug, $package_names ) ) {
 					$filtered_items[$type][$slug] = $contents;
+				}
+			}
+		}
+
+		return $filtered_items;
+	}
+
+	private function filter_empty_build_items( $build_items = [] ) {
+		$filtered_items = [];
+
+		foreach ( $build_items as $type => $items ) {
+			foreach ( $items as $slug => $contents ) {
+				if ( ! empty( $contents['version'] ) ) {
+					$filtered_items[$type] = $items;
 				}
 			}
 		}
