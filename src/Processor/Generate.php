@@ -319,7 +319,7 @@ class Generate {
 		return $ordered_items;
 	}
 
-	private function generate_gitignore( $custom_gitignore = [], $custom_items = [], $composer_exists = FALSE ) {
+	private function generate_gitignore( $custom_gitignore = [], $custom_items = [], $composer_exists = FALSE, $patches_exists = FALSE ) {
 		$gitignore = [];
 
 		// Start WP-CLI Build block.
@@ -336,13 +336,20 @@ class Generate {
 		$gitignore[] = "!.gitignore\n";
 		$gitignore[] = "!{$this->build_filename}\n";
 
-		// Add composer.json.
+		// Add composer.json file.
 		if ( ! empty( $composer_exists ) ) {
 			$gitignore[] = "!composer.json\n";
 		}
 
-		// Add common items.
+		// Add README.md file.
 		$gitignore[] = "!README.md\n";
+
+		// Add patches directory.
+		if ( ! empty( $patches_exists ) ) {
+			$gitignore[] = "!patches\n";
+		}
+
+		// Add common items.
 		$gitignore[] = "!wp-content\n";
 		$gitignore[] = "wp-content/*\n";
 		$gitignore[] = "!wp-content/plugins\n";
@@ -406,16 +413,13 @@ class Generate {
 	}
 
 	private function save_gitignore( $custom_items = [] ) {
-		// .gitignore path.
-		$gitignore_path = ABSPATH . '.gitignore';
-
-		if ( $gitignore_path == '/.gitignore' ) {
-			$gitignore_path = realpath( '.' ) . '/.gitignore';
-		}
-
-		$custom_gitignore = [];
+		// Get absolute path to the root directory of WordPress.
+		$abspath = ABSPATH !== '/' ? ABSPATH : ( realpath( '.' ) . ABSPATH );
 
 		// Check if the .gitignore file exists and load it.
+		$gitignore_path = $abspath . '.gitignore';
+		$custom_gitignore = [];
+
 		if ( file_exists( $gitignore_path ) ) {
 			$current_gitignore = @file( $gitignore_path );
 
@@ -425,14 +429,10 @@ class Generate {
 			}
 		}
 
-		// composer.json path.
-		$composer_path = ABSPATH . 'composer.json';
-
-		if ( $composer_path == '/composer.json' ) {
-			$composer_path = realpath( '.' ) . '/composer.json';
-		}
-
 		// Check if the composer.json file exists and load it.
+		$composer_path = $abspath . 'composer.json';
+		$composer_exists = false;
+
 		if ( file_exists( $composer_path ) ) {
 			$composer_exists = true;
 			$composer = file_get_contents( $composer_path );
@@ -446,11 +446,19 @@ class Generate {
 			}
 		}
 
+		// Check if the patches directory exists and is not empty.
+		$patches_path = $abspath . 'patches';
+		$patches_exists = false;
+
+		if ( file_exists( $patches_path ) && is_dir( $patches_path ) && ( ( new \FilesystemIterator( $patches_path ) )->valid() ) ) {
+			$patches_exists = true;
+		}
+
 		// Order custom items.
 		$custom_items = $this->order_build_items( $custom_items );
 
 		// Generate gitignore.
-		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items, $composer_exists );
+		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items, $composer_exists, $patches_exists );
 
 		// Put content in .gitignore.
 		if ( ! empty( $gitignore ) ) {
