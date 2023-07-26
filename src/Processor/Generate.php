@@ -14,12 +14,20 @@ class Generate {
 	private $build_file;
 	private $build_filename;
 
+	private $gitignore_filename = '.gitignore';
+	private $gitlab_filename	= '.gitlab-ci.yml';
+	private $composer_filename  = 'composer.json';
+	private $readme_filename	= 'README.md';
+	private $patches_dirname	= 'patches';
+
 	public function __construct( $assoc_args = NULL, $build_filename = NULL ) {
 		// Cmd line arguments.
 		$this->assoc_args = $assoc_args;
+
 		// Existing build file (if any).
-		$this->build_filename = $build_filename;
+		$this->build_filename = $build_filename ?? 'build.json';
 		$this->build_file     = new Build_Parser( Utils::get_build_filename( $assoc_args ), $assoc_args );
+
 		// WP core, plugins and themes information.
 		// Verbose output
 		Utils::line( "%WCompiling information from the existing installation, please wait...\n\n" );
@@ -90,15 +98,15 @@ class Generate {
 			$custom_items['themes'] = $this->themes['custom'];
 		}
 
-		// Skip .gitignore creation.
+		// Skip gitignore creation.
 		if ( empty( $custom_items ) ) {
-			Utils::line( "%WNo %Rcustom%n%W items found, skipping %Y.gitignore%n%W creation.%n\n" );
+			Utils::line( "%WNo %Rcustom%n%W items found, skipping %Y$this->gitignore_filename%n%W creation.%n\n" );
 
 			return FALSE;
 		}
 
-		// Create .gitignore.
-		Utils::line( "%WGenerating %n%Y.gitignore%n%W, please wait..." );
+		// Create gitignore.
+		Utils::line( "%WGenerating %n%Y$this->gitignore_filename%n%W, please wait..." );
 		if ( $this->save_gitignore( $custom_items ) ) {
 			Utils::line( "%Gdone%n\n" );
 
@@ -319,7 +327,7 @@ class Generate {
 		return $ordered_items;
 	}
 
-	private function generate_gitignore( $custom_gitignore = [], $custom_items = [], $composer_exists = FALSE, $patches_exists = FALSE ) {
+	private function generate_gitignore( $custom_gitignore = [], $custom_items = [], $optional_items = [] ) {
 		$gitignore = [];
 
 		// Start WP-CLI Build block.
@@ -331,22 +339,29 @@ class Generate {
 		$gitignore[] = "# (that is: those that are not on wordpress.org).\n";
 		$gitignore[] = "# -----------------------------------------------------------------------------\n";
 
-		// Add main items.
+		// Add default items.
 		$gitignore[] = "/*\n";
-		$gitignore[] = "!.gitignore\n";
-		$gitignore[] = "!{$this->build_filename}\n";
+		$gitignore[] = "!{$this->gitignore_filename}\n";
 
-		// Add composer.json file.
-		if ( ! empty( $composer_exists ) ) {
-			$gitignore[] = "!composer.json\n";
+		// Add GitLab file.
+		if ( ! empty( $optional_items[$this->gitlab_filename] ) ) {
+			$gitignore[] = "!{$this->gitlab_filename}\n";
 		}
 
-		// Add README.md file.
-		$gitignore[] = "!README.md\n";
+		// Add build file.
+		$gitignore[] = "!{$this->build_filename}\n";
+
+		// Add Composer file.
+		if ( ! empty( $optional_items[$this->composer_filename] ) ) {
+			$gitignore[] = "!{$this->composer_filename}\n";
+		}
+
+		// Add readme file.
+		$gitignore[] = "!{$this->readme_filename}\n";
 
 		// Add patches directory.
-		if ( ! empty( $patches_exists ) ) {
-			$gitignore[] = "!patches\n";
+		if ( ! empty( $optional_items['patches'] ) ) {
+			$gitignore[] = "!{$this->patches_dirname}\n";
 		}
 
 		// Add common items.
@@ -416,25 +431,36 @@ class Generate {
 		// Get absolute path to the root directory of WordPress.
 		$abspath = ABSPATH !== '/' ? ABSPATH : ( realpath( '.' ) . ABSPATH );
 
-		// Check if the .gitignore file exists and load it.
-		$gitignore_path = $abspath . '.gitignore';
+		// Check if the gitignore file exists and load it.
+		$gitignore_path = $abspath . $this->gitignore_filename;
 		$custom_gitignore = [];
 
 		if ( file_exists( $gitignore_path ) ) {
 			$current_gitignore = @file( $gitignore_path );
 
-			// Check if the .gitignore file is not empty and get custom items.
+			// Check if the gitignore file is not empty and get custom items.
 			if ( ! empty( $current_gitignore ) ) {
 				$custom_gitignore = $this->get_custom_gitignore( $current_gitignore );
 			}
 		}
 
-		// Check if the composer.json file exists and load it.
-		$composer_path = $abspath . 'composer.json';
-		$composer_exists = false;
+		// Optional items to be added to gitignore if they are present.
+		$optional_items = [];
+
+		// Check if the GitLab file exists.
+		$gitlab_path = $abspath . $this->gitlab_filename;
+		$optional_items[$this->gitlab_filename] = false;
+
+		if ( file_exists( $gitlab_path ) ) {
+			$optional_items[$this->gitlab_filename] = true;
+		}
+
+		// Check if the Composer file exists and load it.
+		$composer_path = $abspath . $this->composer_filename;
+		$optional_items[$this->composer_filename] = false;
 
 		if ( file_exists( $composer_path ) ) {
-			$composer_exists = true;
+			$optional_items[$this->composer_filename] = true;
 			$composer = file_get_contents( $composer_path );
 
 			if ( ! empty( $composer ) ) {
@@ -447,20 +473,20 @@ class Generate {
 		}
 
 		// Check if the patches directory exists and is not empty.
-		$patches_path = $abspath . 'patches';
-		$patches_exists = false;
+		$patches_path = $abspath . $this->patches_dirname;
+		$optional_items[$this->patches_dirname] = false;
 
 		if ( file_exists( $patches_path ) && is_dir( $patches_path ) && ( ( new \FilesystemIterator( $patches_path ) )->valid() ) ) {
-			$patches_exists = true;
+			$optional_items[$this->patches_dirname] = true;
 		}
 
 		// Order custom items.
 		$custom_items = $this->order_build_items( $custom_items );
 
 		// Generate gitignore.
-		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items, $composer_exists, $patches_exists );
+		$gitignore = $this->generate_gitignore( $custom_gitignore, $custom_items, $optional_items );
 
-		// Put content in .gitignore.
+		// Put content in gitignore.
 		if ( ! empty( $gitignore ) ) {
 			@file_put_contents( $gitignore_path, $gitignore );
 
