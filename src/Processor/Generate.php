@@ -357,7 +357,9 @@ class Generate {
 		}
 
 		// Add readme file.
-		$gitignore[] = "!{$this->readme_filename}\n";
+		if ( ! empty( $optional_items[$this->readme_filename] ) ) {
+			$gitignore[] = "!{$this->readme_filename}\n";
+		}
 
 		// Add patches directory.
 		if ( ! empty( $optional_items['patches'] ) ) {
@@ -470,6 +472,14 @@ class Generate {
 					$custom_items = $this->filter_composer_items( $custom_items, $composer['require'] );
 				}
 			}
+		}
+
+		// Check if the readme file exists.
+		$readme_path = $abspath . $this->readme_filename;
+		$optional_items[$this->readme_filename] = false;
+
+		if ( file_exists( $readme_path ) ) {
+			$optional_items[$this->readme_filename] = true;
 		}
 
 		// Check if the patches directory exists and is not empty.
