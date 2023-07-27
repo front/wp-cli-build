@@ -38,9 +38,11 @@ Bellow, you can see a sample of the *WP-CLI BUILD BLOCK* added to ***.gitignore*
 # -----------------------------------------------------------------------------
 /*
 !.gitignore
+!.gitlab-ci.yml
 !build.json
 !composer.json
 !README.md
+!patches
 !wp-content
 wp-content/*
 !wp-content/plugins
